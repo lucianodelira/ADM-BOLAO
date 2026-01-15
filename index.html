@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Bolão Loteria Federal - Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0d0d0d;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  background: #1c1c1c;
+  padding: 20px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+h2, h3 {
+  text-align: center;
+}
+
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  background: #00c853;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #555;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+ul li {
+  background: #1e1e1e;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.hidden {
+  display: none;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.stats div {
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 6px;
+  flex: 1;
+  text-align: center;
+  margin: 0 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="loginAdmin">
+  <h2>Administração do Bolão</h2>
+  <input id="adminSenha" type="password" placeholder="Digite a senha do admin">
+  <button onclick="loginAdmin()">Entrar no Painel</button>
+  <div id="loginMsg"></div>
+</div>
+
+<div class="container hidden" id="adminContainer">
+  <h2>🛠️ Painel Admin</h2>
+
+  <div class="stats">
+    <div>
+      <strong id="totalCotas">0</strong><br>Total
+    </div>
+    <div>
+      <strong id="ocupadasCotas">0</strong><br>Ocupadas
+    </div>
+    <div>
+      <strong id="livresCotas">0</strong><br>Disponíveis
+    </div>
+  </div>
+
+  <h3>Participantes Ativos</h3>
+  <ul id="participantesAtivos"></ul>
+
+  <h3>Participantes Pendentes</h3>
+  <ul id="participantesPendentes"></ul>
+
+  <h3>Palpites</h3>
+  <div>
+    <input id="novoPalpite" placeholder="Adicionar palpite">
+    <button onclick="adicionarPalpite()">Adicionar Palpite</button>
+    <ul id="listaPalpites"></ul>
+  </div>
+
+  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair do Painel</button>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyyFITAR_NOlCc1zNuML7omJrSZje84pWC9e5zu0-5DNxnmoVcSkHyYzHJujcfC_VzZ/exec';
+
+// --- ADMIN LOGIN ---
+function loginAdmin() {
+  const senha = document.getElementById('adminSenha').value;
+  if(senha === '1234') {  // <-- Defina sua senha
+    document.getElementById('loginAdmin').classList.add('hidden');
+    document.getElementById('adminContainer').classList.remove('hidden');
+    carregarPainel();
+  } else {
+    document.getElementById('loginMsg').innerText = 'Senha incorreta!';
+  }
+}
+
+function logoutAdmin() {
+  document.getElementById('adminContainer').classList.add('hidden');
+  document.getElementById('loginAdmin').classList.remove('hidden');
+  document.getElementById('adminSenha').value = '';
+  document.getElementById('loginMsg').innerText = '';
+}
+
+// --- CARREGA PAINEL ---
+function carregarPainel() {
+  fetch(API_URL + '?action=infoBolao')
+    .then(r => r.json())
+    .then(d => {
+      // Cotas
+      document.getElementById('totalCotas').innerText = d.total;
+      document.getElementById('ocupadasCotas').innerText = d.ocupadas;
+      document.getElementById('livresCotas').innerText = d.total - d.ocupadas;
+
+      // Participantes ativos
+      const ativos = document.getElementById('participantesAtivos');
+      ativos.innerHTML = '';
+      if(d.participantes && d.participantes.length>0){
+        d.participantes.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = `${p.nome} - ${p.telefone}`;
+          ativos.appendChild(li);
+        });
+      } else {
+        ativos.innerHTML = '<li>Nenhum participante ativo</li>';
+      }
+
+      // Participantes pendentes
+      const pendentes = document.getElementById('participantesPendentes');
+      pendentes.innerHTML = '';
+      // Carrega pendentes via API (novos participantes ainda não aprovados)
+      fetch(API_URL + '?action=infoBolao')
+        .then(r => r.json())
+        .then(d2 => {
+          const sheetPendentes = d2.participantesTodos || []; // se você implementar no GAS
+          // se não houver, deixa vazio
+          if(sheetPendentes.length === 0){
+            pendentes.innerHTML = '<li>Nenhum participante pendente</li>';
+          }
+        });
+    });
+}
+
+// --- PALPITES ---
+function adicionarPalpite() {
+  const p = document.getElementById('novoPalpite').value.trim();
+  if(!p) return;
+  const li = document.createElement('li');
+  li.textContent = p;
+  document.getElementById('listaPalpites').appendChild(li);
+  document.getElementById('novoPalpite').value = '';
+}
+</script>
+
+</body>
+</html>
