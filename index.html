@@ -23,9 +23,7 @@ body {
   max-width: 500px;
 }
 
-h2, h3 {
-  text-align: center;
-}
+h2, h3 { text-align: center; }
 
 input, button {
   width: 100%;
@@ -42,14 +40,9 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
-  background: #555;
-}
-
 ul {
   list-style: none;
   padding: 0;
-  margin-top: 10px;
 }
 
 ul li {
@@ -58,11 +51,12 @@ ul li {
   border-radius: 6px;
   margin-bottom: 6px;
   font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 .stats {
   display: flex;
@@ -78,14 +72,24 @@ ul li {
   text-align: center;
   margin: 0 5px;
 }
+
+.btn-remove {
+  background: #ff3d3d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
 </style>
 </head>
+
 <body>
 
 <div class="container" id="loginAdmin">
   <h2>Administração do Bolão</h2>
-  <input id="adminSenha" type="password" placeholder="Digite a senha do admin">
-  <button onclick="loginAdmin()">Entrar no Painel</button>
+  <input id="adminSenha" type="password" placeholder="Senha do admin">
+  <button onclick="loginAdmin()">Entrar</button>
   <div id="loginMsg"></div>
 </div>
 
@@ -93,102 +97,97 @@ ul li {
   <h2>🛠️ Painel Admin</h2>
 
   <div class="stats">
-    <div>
-      <strong id="totalCotas">0</strong><br>Total
-    </div>
-    <div>
-      <strong id="ocupadasCotas">0</strong><br>Ocupadas
-    </div>
-    <div>
-      <strong id="livresCotas">0</strong><br>Disponíveis
-    </div>
+    <div><strong id="totalCotas">0</strong><br>Total</div>
+    <div><strong id="ocupadasCotas">0</strong><br>Ocupadas</div>
+    <div><strong id="livresCotas">0</strong><br>Disponíveis</div>
   </div>
 
-  <h3>Participantes Ativos</h3>
+  <h3>👥 Participantes</h3>
   <ul id="participantesAtivos"></ul>
 
-  <h3>Participantes Pendentes</h3>
-  <ul id="participantesPendentes"></ul>
+  <h3>📋 Palpites do Bolão</h3>
+  <ul id="listaPalpites"></ul>
 
-  <h3>Palpites</h3>
-  <div>
-    <input id="novoPalpite" placeholder="Adicionar palpite">
-    <button onclick="adicionarPalpite()">Adicionar Palpite</button>
-    <ul id="listaPalpites"></ul>
-  </div>
-
-  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair do Painel</button>
+  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair</button>
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyyFITAR_NOlCc1zNuML7omJrSZje84pWC9e5zu0-5DNxnmoVcSkHyYzHJujcfC_VzZ/exec';
+const API_URL = 'COLE_AQUI_A_URL_DO_WEB_APP';
 
-// --- ADMIN LOGIN ---
+// LOGIN
 function loginAdmin() {
   const senha = document.getElementById('adminSenha').value;
-  if(senha === '1234') {  // <-- Defina sua senha
+  if (senha === '1234') {
     document.getElementById('loginAdmin').classList.add('hidden');
     document.getElementById('adminContainer').classList.remove('hidden');
     carregarPainel();
   } else {
-    document.getElementById('loginMsg').innerText = 'Senha incorreta!';
+    document.getElementById('loginMsg').innerText = 'Senha incorreta';
   }
 }
 
 function logoutAdmin() {
   document.getElementById('adminContainer').classList.add('hidden');
   document.getElementById('loginAdmin').classList.remove('hidden');
-  document.getElementById('adminSenha').value = '';
-  document.getElementById('loginMsg').innerText = '';
 }
 
-// --- CARREGA PAINEL ---
+// PAINEL
 function carregarPainel() {
   fetch(API_URL + '?action=infoBolao')
     .then(r => r.json())
     .then(d => {
-      // Cotas
       document.getElementById('totalCotas').innerText = d.total;
       document.getElementById('ocupadasCotas').innerText = d.ocupadas;
       document.getElementById('livresCotas').innerText = d.total - d.ocupadas;
 
-      // Participantes ativos
-      const ativos = document.getElementById('participantesAtivos');
-      ativos.innerHTML = '';
-      if(d.participantes && d.participantes.length>0){
+      const ul = document.getElementById('participantesAtivos');
+      ul.innerHTML = '';
+
+      if (d.participantes.length === 0) {
+        ul.innerHTML = '<li>Nenhum participante</li>';
+      } else {
         d.participantes.forEach(p => {
           const li = document.createElement('li');
-          li.textContent = `${p.nome} - ${p.telefone}`;
-          ativos.appendChild(li);
+          li.innerHTML = `
+            <span>${p.nome} - ${p.telefone}</span>
+            <button class="btn-remove" onclick="removerParticipante('${p.nome}','${p.telefone}')">❌</button>
+          `;
+          ul.appendChild(li);
         });
-      } else {
-        ativos.innerHTML = '<li>Nenhum participante ativo</li>';
       }
+    });
 
-      // Participantes pendentes
-      const pendentes = document.getElementById('participantesPendentes');
-      pendentes.innerHTML = '';
-      // Carrega pendentes via API (novos participantes ainda não aprovados)
-      fetch(API_URL + '?action=infoBolao')
-        .then(r => r.json())
-        .then(d2 => {
-          const sheetPendentes = d2.participantesTodos || []; // se você implementar no GAS
-          // se não houver, deixa vazio
-          if(sheetPendentes.length === 0){
-            pendentes.innerHTML = '<li>Nenhum participante pendente</li>';
-          }
+  fetch(API_URL + '?action=palpites')
+    .then(r => r.json())
+    .then(d => {
+      const ul = document.getElementById('listaPalpites');
+      ul.innerHTML = '';
+
+      if (d.palpites.length === 0) {
+        ul.innerHTML = '<li>Nenhum palpite cadastrado</li>';
+      } else {
+        d.palpites.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          ul.appendChild(li);
         });
+      }
     });
 }
 
-// --- PALPITES ---
-function adicionarPalpite() {
-  const p = document.getElementById('novoPalpite').value.trim();
-  if(!p) return;
-  const li = document.createElement('li');
-  li.textContent = p;
-  document.getElementById('listaPalpites').appendChild(li);
-  document.getElementById('novoPalpite').value = '';
+// REMOVER
+function removerParticipante(nome, telefone) {
+  if (!confirm(`Remover ${nome}?`)) return;
+
+  fetch(`${API_URL}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        carregarPainel();
+      } else {
+        alert('Erro ao remover');
+      }
+    });
 }
 </script>
 
