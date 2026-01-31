@@ -13,11 +13,18 @@ const elements = {
   palpitesList: document.getElementById('listaPalpites'),
 };
 
-function showMessage(msg, isSuccess = false) {
+let isRemoving = false;
+
+// ------------------ Funções de tela ------------------
+function showError(msg, isSuccess = false) {
   elements.errorDiv.textContent = msg;
   elements.errorDiv.style.color = isSuccess ? '#00c853' : '#ff6b6b';
   elements.errorDiv.style.opacity = '1';
-  setTimeout(() => elements.errorDiv.style.opacity = '0', 5000);
+  setTimeout(() => { elements.errorDiv.style.opacity = '0'; }, 4000);
+}
+
+function clearError() {
+  elements.errorDiv.textContent = '';
 }
 
 function showPanel() {
@@ -30,71 +37,54 @@ function hidePanel() {
   elements.adminPanel.classList.add('hidden');
   elements.loginScreen.classList.remove('hidden');
   elements.passwordInput.value = '';
-  elements.errorDiv.textContent = '';
+  clearError();
 }
 
+// ------------------ Login / Logout ------------------
 async function tryLogin() {
   const senha = elements.passwordInput.value.trim();
-  if (!senha) return showMessage('Digite a senha');
+  if (!senha) return showError('Digite a senha');
+
+  // ATENÇÃO: Em produção → mover autenticação pro backend!
   if (senha !== '1234') {
-    showMessage('Senha incorreta');
+    showError('Senha incorreta');
+    elements.passwordInput.focus();
     return;
   }
+
   showPanel();
 }
 
 function logout() {
-  if (confirm('Sair do painel?')) hidePanel();
+  if (!confirm('Deseja realmente sair do painel?')) return;
+  hidePanel();
 }
 
-async function fetchJson(url) {
+// ------------------ Carregar dados ------------------
+async function loadDashboard(silent = false) {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const res = await fetch(API_BASE + '?action=infoBolao');
+    if (!res.ok) throw new Error('Falha na comunicação');
+    const data = await res.json();
 
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    console.error('Fetch error:', err);
-    throw err;
-  }
-}
-
-async function loadDashboard() {
-  elements.participantesList.innerHTML = '<li style="opacity:0.7">Carregando...</li>';
-  elements.palpitesList.innerHTML = '<li style="opacity:0.7">Carregando...</li>';
-
-  try {
-    const data = await fetchJson(API_BASE + '?action=infoBolao');
-    console.log('infoBolao response:', data);
-
-    elements.totalEl.textContent    = data.total ?? '?';
-    elements.ocupadasEl.textContent = data.ocupadas ?? '?';
+    elements.totalEl.textContent    = data.total    ?? '—';
+    elements.ocupadasEl.textContent = data.ocupadas ?? '—';
     elements.livresEl.textContent   = Number(data.total || 0) - Number(data.ocupadas || 0);
 
-    if (Array.isArray(data.participantes)) {
-      renderParticipantes(data.participantes);
-    } else {
-      console.warn('participantes não é array:', data.participantes);
-      elements.participantesList.innerHTML = '<li style="color:#ff9800">Formato de participantes inválido</li>';
-      showMessage('Estrutura de dados alterada no servidor');
-    }
+    renderParticipantes(data.participantes || []);
   } catch (err) {
-    console.error('Erro infoBolao:', err);
-    elements.participantesList.innerHTML = '<li style="color:#ff6b6b">Erro ao carregar participantes</li>';
-    showMessage('Não foi possível carregar os dados do bolão');
+    console.error(err);
+    if (!silent) showError('Erro ao carregar participantes');
   }
 
   try {
-    const dataPalpites = await fetchJson(API_BASE + '?action=palpites');
-    console.log('palpites response:', dataPalpites);
-    renderPalpites(dataPalpites.palpites || []);
+    const res = await fetch(API_BASE + '?action=palpites');
+    if (!res.ok) throw new Error('Falha ao carregar palpites');
+    const data = await res.json();
+    renderPalpites(data.palpites || []);
   } catch (err) {
-    console.error('Erro palpites:', err);
-    elements.palpitesList.innerHTML = '<li style="color:#ff6b6b">Erro ao carregar palpites</li>';
+    console.error(err);
+    if (!silent) showError('Erro ao carregar palpites');
   }
 }
 
@@ -103,7 +93,7 @@ function renderParticipantes(lista) {
   ul.innerHTML = '';
 
   if (lista.length === 0) {
-    ul.innerHTML = '<li style="opacity:0.6;text-align:center">Nenhum participante cadastrado</li>';
+    ul.innerHTML = '<li style="opacity:0.6; text-align:center; padding:20px;">Nenhum participante cadastrado</li>';
     return;
   }
 
@@ -114,53 +104,73 @@ function renderParticipantes(lista) {
     const li = document.createElement('li');
     li.className = 'participante';
     li.innerHTML = `
-      <span>${nome} <small style="opacity:0.7">(${tel})</small></span>
-      <button class="danger remove-btn" data-nome="${nome}" data-tel="${tel}">Remover</button>
+      <span>${nome} <small style="opacity:0.7; font-size:0.9em;">(${tel})</small></span>
+      <button class="danger remove-btn" 
+              data-nome="${nome}" 
+              data-tel="${tel}"
+              ${isRemoving ? 'disabled' : ''}>
+        Remover
+      </button>
     `;
     ul.appendChild(li);
   });
 
-  ul.removeEventListener('click', handleRemove);
-  ul.addEventListener('click', handleRemove);
+  // Adiciona listener uma única vez (delegação de eventos)
+  ul.removeEventListener('click', handleRemoveClick);
+  ul.addEventListener('click', handleRemoveClick);
 }
 
-function handleRemove(e) {
-  if (!e.target.classList.contains('remove-btn')) return;
+function handleRemoveClick(e) {
+  if (!e.target.classList.contains('remove-btn') || isRemoving) return;
+
   const btn = e.target;
   const nome = btn.dataset.nome;
-  const tel = btn.dataset.tel;
+  const tel  = btn.dataset.tel;
 
-  if (!confirm(`Remover ${nome} (${tel})?`)) return;
+  if (!confirm(`Deseja realmente remover\n${nome} (${tel})?`)) return;
+
   removerParticipante(nome, tel, btn);
 }
 
-async function removerParticipante(nome, telefone, button) {
-  button.disabled = true;
-  button.textContent = 'Removendo...';
+async function removerParticipante(nome, telefone, buttonElement) {
+  if (isRemoving) return;
+  isRemoving = true;
+
+  buttonElement.disabled = true;
+  buttonElement.textContent = 'Removendo...';
 
   try {
     const url = `${API_BASE}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`;
-    const data = await fetchJson(url);
+    const res = await fetch(url);
+    const data = await res.json();
 
     if (data.success) {
-      showMessage('Participante removido!', true);
-      loadDashboard();
+      showError('Participante removido com sucesso!', true);
+      await loadDashboard(true); // silent → sem mostrar erro caso falhe outro fetch
     } else {
-      showMessage(data.message || 'Falha ao remover');
-      button.textContent = 'Remover';
-      button.disabled = false;
+      showError(data.message || 'Não foi possível remover');
+      buttonElement.textContent = 'Remover';
+      buttonElement.disabled = false;
     }
   } catch (err) {
-    showMessage('Erro ao tentar remover');
-    button.textContent = 'Remover';
-    button.disabled = false;
+    console.error(err);
+    showError('Erro de conexão ao tentar remover');
+    buttonElement.textContent = 'Remover';
+    buttonElement.disabled = false;
+  } finally {
+    isRemoving = false;
   }
 }
 
 function renderPalpites(lista) {
   const ul = elements.palpitesList;
   ul.innerHTML = lista.length === 0
-    ? '<li style="opacity:0.6;text-align:center">Nenhum palpite cadastrado</li>'
+    ? '<li style="opacity:0.6; text-align:center; padding:20px;">Nenhum palpite cadastrado</li>'
     : lista.map(p => `<li class="palpite">${p}</li>`).join('');
 }
+
+// Inicialização
+window.addEventListener('load', () => {
+  // Opcional: carregar automaticamente se quiser manter sessão (via localStorage + token)
+});
 </script>
