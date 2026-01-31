@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Bolão Loteria Federal - Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0d0d0d;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  background: #1c1c1c;
+  padding: 20px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+h2, h3 { text-align: center; }
+
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  background: #00c853;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  background: #1e1e1e;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hidden { display: none; }
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.stats div {
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 6px;
+  flex: 1;
+  text-align: center;
+  margin: 0 5px;
+}
+
+.btn-remove {
+  background: #ff3d3d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="loginAdmin">
+  <h2>Administração do Bolão</h2>
+  <input id="adminSenha" type="password" placeholder="Senha do admin">
+  <button onclick="loginAdmin()">Entrar</button>
+  <div id="loginMsg"></div>
+</div>
+
+<div class="container hidden" id="adminContainer">
+  <h2>🛠️ Painel Admin</h2>
+
+  <div class="stats">
+    <div><strong id="totalCotas">0</strong><br>Total</div>
+    <div><strong id="ocupadasCotas">0</strong><br>Ocupadas</div>
+    <div><strong id="livresCotas">0</strong><br>Disponíveis</div>
+  </div>
+
+  <h3>👥 Participantes</h3>
+  <ul id="participantesAtivos"></ul>
+
+  <h3>📋 Palpites do Bolão</h3>
+  <ul id="listaPalpites"></ul>
+
+  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair</button>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyoEzMAJPNQ6fF38lvWAjDdKeLuMHIq88sIJUfRZNPL2jLgi7dQjJbznn2eh4ArInr2/exec';
+
+// LOGIN
+function loginAdmin() {
+  const senha = document.getElementById('adminSenha').value;
+  if (senha === '1234') {
+    document.getElementById('loginAdmin').classList.add('hidden');
+    document.getElementById('adminContainer').classList.remove('hidden');
+    carregarPainel();
+  } else {
+    document.getElementById('loginMsg').innerText = 'Senha incorreta';
+  }
+}
+
+function logoutAdmin() {
+  document.getElementById('adminContainer').classList.add('hidden');
+  document.getElementById('loginAdmin').classList.remove('hidden');
+}
+
+// PAINEL
+function carregarPainel() {
+  fetch(API_URL + '?action=infoBolao')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('totalCotas').innerText = d.total;
+      document.getElementById('ocupadasCotas').innerText = d.ocupadas;
+      document.getElementById('livresCotas').innerText = d.total - d.ocupadas;
+
+      const ul = document.getElementById('participantesAtivos');
+      ul.innerHTML = '';
+
+      if (d.participantes.length === 0) {
+        ul.innerHTML = '<li>Nenhum participante</li>';
+      } else {
+        d.participantes.forEach(p => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span>${p.nome} - ${p.telefone}</span>
+            <button class="btn-remove" onclick="removerParticipante('${p.nome}','${p.telefone}')">❌</button>
+          `;
+          ul.appendChild(li);
+        });
+      }
+    });
+
+  fetch(API_URL + '?action=palpites')
+    .then(r => r.json())
+    .then(d => {
+      const ul = document.getElementById('listaPalpites');
+      ul.innerHTML = '';
+
+      if (d.palpites.length === 0) {
+        ul.innerHTML = '<li>Nenhum palpite cadastrado</li>';
+      } else {
+        d.palpites.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          ul.appendChild(li);
+        });
+      }
+    });
+}
+
+// REMOVER
+function removerParticipante(nome, telefone) {
+  if (!confirm(`Remover ${nome}?`)) return;
+
+  fetch(`${API_URL}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        carregarPainel();
+      } else {
+        alert('Erro ao remover');
+      }
+    });
+}
+</script>
+
+</body>
+</html>
