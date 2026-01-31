@@ -1,334 +1,195 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bolão Loteria Federal – Admin</title>
+<meta charset="UTF-8">
+<title>Bolão Loteria Federal - Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    :root {
-      --bg-dark: #0d0d0d;
-      --card: #1c1c1c;
-      --card-light: #242424;
-      --text: #e0e0e0;
-      --accent: #00c853;
-      --danger: #ff3d3d;
-      --border-radius: 8px;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0d0d0d;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+.container {
+  background: #1c1c1c;
+  padding: 20px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 500px;
+}
 
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg-dark);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 24px 16px;
-      display: grid;
-      place-items: center;
-    }
+h2, h3 { text-align: center; }
 
-    .container {
-      background: var(--card);
-      border-radius: var(--border-radius);
-      padding: 28px;
-      width: 100%;
-      max-width: 540px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    }
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 5px;
+  border: none;
+}
 
-    h2 { font-size: 1.6rem; margin-bottom: 1.5rem; text-align: center; color: #fff; }
-    h3 { font-size: 1.25rem; margin: 1.8rem 0 1rem; color: #ccc; }
+button {
+  background: #00c853;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-    input[type="password"],
-    input[type="text"] {
-      width: 100%;
-      padding: 14px 16px;
-      margin: 10px 0 6px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      background: #111;
-      color: white;
-      font-size: 1rem;
-    }
+ul {
+  list-style: none;
+  padding: 0;
+}
 
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,200,83,0.2);
-    }
+ul li {
+  background: #1e1e1e;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    button {
-      width: 100%;
-      padding: 14px;
-      margin: 12px 0 8px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1.05rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
+.hidden { display: none; }
 
-    button.primary {
-      background: var(--accent);
-      color: #000;
-    }
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
 
-    button.primary:hover { background: #00b140; transform: translateY(-1px); }
+.stats div {
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 6px;
+  flex: 1;
+  text-align: center;
+  margin: 0 5px;
+}
 
-    button.danger {
-      background: var(--danger);
-      color: white;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      width: auto;
-    }
-
-    button.danger:hover { background: #e63333; }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 20px 0 32px;
-    }
-
-    .stat-card {
-      background: var(--card-light);
-      padding: 16px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .stat-card strong {
-      display: block;
-      font-size: 1.8rem;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-
-    ul { list-style: none; }
-
-    li.participante,
-    li.palpite {
-      background: #1e1e1e;
-      padding: 12px 16px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.97rem;
-    }
-
-    .message {
-      text-align: center;
-      margin: 12px 0;
-      font-size: 0.95rem;
-      min-height: 1.2em;
-    }
-
-    .hidden { display: none !important; }
-  </style>
+.btn-remove {
+  background: #ff3d3d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-<div class="container" id="loginScreen">
+<div class="container" id="loginAdmin">
   <h2>Administração do Bolão</h2>
-  <input id="adminPassword" type="password" placeholder="Senha administrativa" autocomplete="off"/>
-  <button class="primary" onclick="tryLogin()">Entrar</button>
-  <div id="loginError" class="message"></div>
+  <input id="adminSenha" type="password" placeholder="Senha do admin">
+  <button onclick="loginAdmin()">Entrar</button>
+  <div id="loginMsg"></div>
 </div>
 
-<div class="container hidden" id="adminPanel">
-  <h2>🛠️ Painel Administrativo</h2>
+<div class="container hidden" id="adminContainer">
+  <h2>🛠️ Painel Admin</h2>
 
   <div class="stats">
-    <div class="stat-card">
-      <strong id="totalCotas">—</strong>
-      Total
-    </div>
-    <div class="stat-card">
-      <strong id="ocupadasCotas">—</strong>
-      Ocupadas
-    </div>
-    <div class="stat-card">
-      <strong id="livresCotas">—</strong>
-      Livres
-    </div>
+    <div><strong id="totalCotas">0</strong><br>Total</div>
+    <div><strong id="ocupadasCotas">0</strong><br>Ocupadas</div>
+    <div><strong id="livresCotas">0</strong><br>Disponíveis</div>
   </div>
 
-  <h3>👥 Participantes Ativos</h3>
-  <ul id="listaParticipantes"></ul>
+  <h3>👥 Participantes</h3>
+  <ul id="participantesAtivos"></ul>
 
-  <h3>📋 Palpites Cadastrados</h3>
+  <h3>📋 Palpites do Bolão</h3>
   <ul id="listaPalpites"></ul>
 
-  <div id="panelMessage" class="message"></div>
-
-  <button class="primary" style="margin-top: 32px;" onclick="logout()">Sair</button>
+  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair</button>
 </div>
 
 <script>
-const API_BASE = 'https://script.google.com/macros/s/AKfycbyoEzMAJPNQ6fF38lvWAjDdKeLuMHIq88sIJUfRZNPL2jLgi7dQjJbznn2eh4ArInr2/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyoEzMAJPNQ6fF38lvWAjDdKeLuMHIq88sIJUfRZNPL2jLgi7dQjJbznn2eh4ArInr2/exec';
 
-const els = {
-  loginScreen: document.getElementById('loginScreen'),
-  adminPanel: document.getElementById('adminPanel'),
-  password: document.getElementById('adminPassword'),
-  loginMsg: document.getElementById('loginError'),
-  panelMsg: document.getElementById('panelMessage'),
-  total: document.getElementById('totalCotas'),
-  ocupadas: document.getElementById('ocupadasCotas'),
-  livres: document.getElementById('livresCotas'),
-  partList: document.getElementById('listaParticipantes'),
-  palpList: document.getElementById('listaPalpites'),
-};
-
-function showMsg(el, text, color = '#ff6b6b') {
-  el.textContent = text;
-  el.style.color = color;
-  if (color === '#00c853') setTimeout(() => el.textContent = '', 4000);
-}
-
-async function fetchAPI(url) {
-  try {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    console.log('API resposta:', data);
-    return data;
-  } catch (err) {
-    console.error('Erro na API:', err);
-    throw err;
+// LOGIN
+function loginAdmin() {
+  const senha = document.getElementById('adminSenha').value;
+  if (senha === '1234') {
+    document.getElementById('loginAdmin').classList.add('hidden');
+    document.getElementById('adminContainer').classList.remove('hidden');
+    carregarPainel();
+  } else {
+    document.getElementById('loginMsg').innerText = 'Senha incorreta';
   }
 }
 
-function tryLogin() {
-  const senha = els.password.value.trim();
-  if (!senha) return showMsg(els.loginMsg, 'Digite a senha');
-  if (senha !== '1234') return showMsg(els.loginMsg, 'Senha incorreta');
-
-  els.loginScreen.classList.add('hidden');
-  els.adminPanel.classList.remove('hidden');
-  loadDashboard();
+function logoutAdmin() {
+  document.getElementById('adminContainer').classList.add('hidden');
+  document.getElementById('loginAdmin').classList.remove('hidden');
 }
 
-function logout() {
-  if (!confirm('Sair do painel?')) return;
-  els.adminPanel.classList.add('hidden');
-  els.loginScreen.classList.remove('hidden');
-  els.password.value = '';
-  els.loginMsg.textContent = '';
-}
+// PAINEL
+function carregarPainel() {
+  fetch(API_URL + '?action=infoBolao')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('totalCotas').innerText = d.total;
+      document.getElementById('ocupadasCotas').innerText = d.ocupadas;
+      document.getElementById('livresCotas').innerText = d.total - d.ocupadas;
 
-async function loadDashboard() {
-  els.partList.innerHTML = '<li style="opacity:0.7; text-align:center; padding:20px;">Carregando participantes...</li>';
-  els.palpList.innerHTML = '<li style="opacity:0.7; text-align:center; padding:20px;">Carregando palpites...</li>';
+      const ul = document.getElementById('participantesAtivos');
+      ul.innerHTML = '';
 
-  try {
-    const data = await fetchAPI(API_BASE + '?action=infoBolao');
-
-    els.total.textContent    = data.total ?? '?';
-    els.ocupadas.textContent = data.ocupadas ?? '?';
-    els.livres.textContent   = Number(data.total || 0) - Number(data.ocupadas || 0);
-
-    if (Array.isArray(data.participantes)) {
-      renderParticipantes(data.participantes);
-    } else {
-      els.partList.innerHTML = '<li style="color:#ff9800; text-align:center">Formato de participantes inválido</li>';
-      showMsg(els.panelMsg, 'Estrutura de dados alterada no servidor', '#ff9800');
-    }
-  } catch (err) {
-    els.partList.innerHTML = '<li style="color:#ff6b6b; text-align:center">Erro ao carregar participantes</li>';
-    showMsg(els.panelMsg, 'Não foi possível carregar os dados do bolão');
-  }
-
-  try {
-    const data = await fetchAPI(API_BASE + '?action=palpites');
-    renderPalpites(data.palpites || []);
-  } catch (err) {
-    els.palpList.innerHTML = '<li style="color:#ff6b6b; text-align:center">Erro ao carregar palpites</li>';
-  }
-}
-
-function renderParticipantes(lista) {
-  const ul = els.partList;
-  ul.innerHTML = '';
-
-  if (!lista || lista.length === 0) {
-    ul.innerHTML = '<li style="opacity:0.6; text-align:center; padding:20px;">Nenhum participante cadastrado</li>';
-    return;
-  }
-
-  lista.forEach(p => {
-    const nome = (p.nome || '?').trim();
-    const tel  = (p.telefone || '—').trim();
-
-    const li = document.createElement('li');
-    li.className = 'participante';
-    li.innerHTML = `
-      <span>${nome} <small style="opacity:0.7">(${tel})</small></span>
-      <button class="danger remove-btn" 
-              data-nome="${nome.replace(/"/g,'&quot;')}" 
-              data-tel="${tel.replace(/"/g,'&quot;')}">
-        Remover
-      </button>
-    `;
-    ul.appendChild(li);
-  });
-
-  ul.removeEventListener('click', handleRemoveClick);
-  ul.addEventListener('click', handleRemoveClick);
-}
-
-function handleRemoveClick(e) {
-  if (!e.target.classList.contains('remove-btn')) return;
-
-  const btn = e.target;
-  const nome = btn.dataset.nome;
-  const tel  = btn.dataset.tel;
-
-  if (!confirm(`Remover ${nome} (${tel})?`)) return;
-
-  btn.disabled = true;
-  btn.textContent = 'Removendo...';
-
-  fetchAPI(`${API_BASE}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(tel)}`)
-    .then(data => {
-      if (data.success) {
-        showMsg(els.panelMsg, 'Participante removido com sucesso!', '#00c853');
-        loadDashboard();
+      if (d.participantes.length === 0) {
+        ul.innerHTML = '<li>Nenhum participante</li>';
       } else {
-        showMsg(els.panelMsg, data.message || 'Não foi possível remover');
-        btn.textContent = 'Remover';
-        btn.disabled = false;
+        d.participantes.forEach(p => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span>${p.nome} - ${p.telefone}</span>
+            <button class="btn-remove" onclick="removerParticipante('${p.nome}','${p.telefone}')">❌</button>
+          `;
+          ul.appendChild(li);
+        });
       }
-    })
-    .catch(() => {
-      showMsg(els.panelMsg, 'Erro ao tentar remover');
-      btn.textContent = 'Remover';
-      btn.disabled = false;
+    });
+
+  fetch(API_URL + '?action=palpites')
+    .then(r => r.json())
+    .then(d => {
+      const ul = document.getElementById('listaPalpites');
+      ul.innerHTML = '';
+
+      if (d.palpites.length === 0) {
+        ul.innerHTML = '<li>Nenhum palpite cadastrado</li>';
+      } else {
+        d.palpites.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          ul.appendChild(li);
+        });
+      }
     });
 }
 
-function renderPalpites(lista) {
-  const ul = els.palpList;
-  ul.innerHTML = '';
+// REMOVER
+function removerParticipante(nome, telefone) {
+  if (!confirm(`Remover ${nome}?`)) return;
 
-  if (!lista || lista.length === 0) {
-    ul.innerHTML = '<li style="opacity:0.6; text-align:center; padding:20px;">Nenhum palpite cadastrado</li>';
-    return;
-  }
-
-  lista.forEach(p => {
-    const li = document.createElement('li');
-    li.className = 'palpite';
-    li.textContent = p;
-    ul.appendChild(li);
-  });
+  fetch(`${API_URL}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        carregarPainel();
+      } else {
+        alert('Erro ao remover');
+      }
+    });
 }
 </script>
+
 </body>
 </html>
