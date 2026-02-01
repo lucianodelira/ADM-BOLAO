@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body { font-family: Arial; background:#0d0d0d; color:#fff; display:flex; justify-content:center; padding:20px;}
-.container { background:#1c1c1c; padding:20px; border-radius:10px; width:100%; max-width:600px;}
+.container { background:#1c1c1c; padding:20px; border-radius:10px; width:100%; max-width:800px;}
 h2,h3{text-align:center;}
 input,button{width:100%; padding:12px; margin-top:10px; border-radius:5px; border:none;}
 button{background:#00c853; color:#000; font-weight:bold; cursor:pointer;}
@@ -16,6 +16,8 @@ ul li{background:#1e1e1e; padding:8px; border-radius:6px; margin-bottom:6px; fon
 .stats{display:flex; justify-content:space-between; margin-top:15px;}
 .stats div{background:#2a2a2a; padding:10px; border-radius:6px; flex:1; text-align:center; margin:0 5px;}
 .btn-remove{background:#ff3d3d; color:#fff; border:none; border-radius:5px; padding:5px 8px; cursor:pointer;}
+#busca{margin-top:10px; padding:8px; border-radius:5px; border:none;}
+#downloadCSV{background:#2196F3; color:#fff; margin-top:10px;}
 </style>
 </head>
 <body>
@@ -36,17 +38,21 @@ ul li{background:#1e1e1e; padding:8px; border-radius:6px; margin-bottom:6px; fon
     <div><strong id="livresCotas">0</strong><br>Disponíveis</div>
   </div>
 
+  <input type="text" id="busca" placeholder="Buscar participante por nome ou telefone" oninput="filtrarParticipantes()">
+
   <h3>👥 Participantes</h3>
   <ul id="participantesAtivos"></ul>
 
   <h3>📋 Palpites do Bolão</h3>
   <ul id="listaPalpites"></ul>
 
-  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair</button>
+  <button id="downloadCSV" onclick="baixarCSV()">📥 Baixar CSV</button>
+  <button style="margin-top:10px;" onclick="logoutAdmin()">Sair</button>
 </div>
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbySfyYAu9ec3tjRIWtPryOihTkq3poctMgHfzKlnPJQuDceCaHF4c3i6YZOMDfZDVuN/exec'; // Substitua pela sua URL do Apps Script
+let participantesData = [];
 
 function loginAdmin(){
   const senha = document.getElementById('adminSenha').value;
@@ -68,26 +74,13 @@ function carregarPainel(){
   fetch(`${API_URL}?action=infoBolao`)
     .then(r=>r.json())
     .then(d=>{
+      participantesData = d.participantes;
+
       document.getElementById('totalCotas').innerText=d.total;
       document.getElementById('ocupadasCotas').innerText=d.ocupadas;
       document.getElementById('livresCotas').innerText=d.total-d.ocupadas;
 
-      const ul = document.getElementById('participantesAtivos');
-      ul.innerHTML='';
-
-      if(!d.participantes || d.participantes.length===0){
-        ul.innerHTML='<li>Nenhum participante</li>';
-      } else {
-        d.participantes.forEach(p=>{
-          const li=document.createElement('li');
-          li.innerHTML=`<span>${p.nome} | ${p.telefone} | ${new Date(p.data).toLocaleString()} | ${p.status}</span>
-          <button class="btn-remove" onclick='removerParticipante("${p.id}")'>❌</button>`;
-          ul.appendChild(li);
-        });
-        const liAll=document.createElement('li');
-        liAll.innerHTML=`<button class="btn-remove" onclick="removerTodos()">Excluir TODOS</button>`;
-        ul.appendChild(liAll);
-      }
+      exibirParticipantes(participantesData);
     }).catch(err=>{
       console.error(err);
       alert('Erro ao carregar participantes');
@@ -111,6 +104,30 @@ function carregarPainel(){
       console.error(err);
       alert('Erro ao carregar palpites');
     });
+}
+
+function exibirParticipantes(list){
+  const ul = document.getElementById('participantesAtivos');
+  ul.innerHTML='';
+  if(!list || list.length===0){
+    ul.innerHTML='<li>Nenhum participante</li>';
+    return;
+  }
+  list.forEach(p=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span>${p.nome} | ${p.telefone} | ${new Date(p.data).toLocaleString()} | ${p.status} | ${p.paymentId}</span>
+    <button class="btn-remove" onclick='removerParticipante("${p.id}")'>❌</button>`;
+    ul.appendChild(li);
+  });
+  const liAll=document.createElement('li');
+  liAll.innerHTML=`<button class="btn-remove" onclick="removerTodos()">Excluir TODOS</button>`;
+  ul.appendChild(liAll);
+}
+
+function filtrarParticipantes(){
+  const termo = document.getElementById('busca').value.toLowerCase();
+  const filtrado = participantesData.filter(p=>p.nome.toLowerCase().includes(termo) || p.telefone.includes(termo));
+  exibirParticipantes(filtrado);
 }
 
 function removerParticipante(id){
@@ -156,7 +173,10 @@ function removerTodos(){
     alert('Erro de conexão');
   });
 }
-</script>
 
+function baixarCSV(){
+  window.open(`${API_URL}?action=downloadCSV`, '_blank');
+}
+</script>
 </body>
 </html>
