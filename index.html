@@ -149,9 +149,10 @@ function carregarPainel() {
         d.participantes.forEach(p => {
           const li = document.createElement('li');
           li.innerHTML = `
-            <span>${p.nome} - ${p.telefone}</span>
-            <button class="btn-remove" onclick="removerParticipante('${p.nome}','${p.telefone}')">❌</button>
-          `;
+  <span>${p.nome} - ${p.telefone}</span>
+  <button class="btn-remove" onclick="removerParticipante('${p.id}')">❌</button>
+`;
+
           ul.appendChild(li);
         });
       }
@@ -176,19 +177,20 @@ function carregarPainel() {
 }
 
 // REMOVER
-function removerParticipante(nome, telefone) {
-  if (!confirm(`Remover ${nome}?`)) return;
+function removerParticipante(id){
+  if(!confirm('Remover participante?')) return;
 
-  fetch(`${API_URL}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`)
+  fetch(`${API_URL}?action=removerParticipante&id=${encodeURIComponent(id)}`)
     .then(r => r.json())
     .then(res => {
-      if (res.success) {
+      if(res.success){
         carregarPainel();
       } else {
-        alert('Erro ao remover');
+        alert(res.message || 'Erro ao remover');
       }
     });
 }
+
 </script>
 
 </body>
