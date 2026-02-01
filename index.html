@@ -112,7 +112,7 @@ ul li {
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyoEzMAJPNQ6fF38lvWAjDdKeLuMHIq88sIJUfRZNPL2jLgi7dQjJbznn2eh4ArInr2/exec';
+const API_URL = 'COLE_AQUI_SUA_NOVA_URL_DO_WEB_APP'; // 🔹 coloque a nova URL
 
 // LOGIN
 function loginAdmin() {
@@ -131,9 +131,10 @@ function logoutAdmin() {
   document.getElementById('loginAdmin').classList.remove('hidden');
 }
 
-// PAINEL
+// CARREGAR PAINEL
 function carregarPainel() {
-  fetch(API_URL + '?action=infoBolao')
+  // Participantes
+  fetch(`${API_URL}?action=infoBolao`)
     .then(r => r.json())
     .then(d => {
       document.getElementById('totalCotas').innerText = d.total;
@@ -143,40 +144,39 @@ function carregarPainel() {
       const ul = document.getElementById('participantesAtivos');
       ul.innerHTML = '';
 
-      if (d.participantes.length === 0) {
+      if (!d.participantes || d.participantes.length === 0) {
         ul.innerHTML = '<li>Nenhum participante</li>';
       } else {
         d.participantes.forEach(p => {
           const li = document.createElement('li');
           li.innerHTML = `
-  <span>${p.nome} - ${p.telefone}</span>
-  <button class="btn-remove" onclick="removerParticipante('${p.id}')">❌</button>
-`;
-
+            <span>${p.nome} - ${p.telefone}</span>
+            <button class="btn-remove" onclick="removerParticipante('${p.id}')">❌</button>
+          `;
           ul.appendChild(li);
         });
       }
     });
 
-  fetch(API_URL + '?action=palpites')
+  // Palpites
+  fetch(`${API_URL}?action=getPalpites`)
     .then(r => r.json())
     .then(d => {
       const ul = document.getElementById('listaPalpites');
       ul.innerHTML = '';
-
-      if (d.palpites.length === 0) {
+      if (!d.palpites || d.palpites.length === 0) {
         ul.innerHTML = '<li>Nenhum palpite cadastrado</li>';
       } else {
         d.palpites.forEach(p => {
           const li = document.createElement('li');
-          li.textContent = p;
+          li.textContent = `${p.nome}: ${p.numeros}`;
           ul.appendChild(li);
         });
       }
     });
 }
 
-// REMOVER
+// REMOVER PARTICIPANTE
 function removerParticipante(id){
   if(!confirm('Remover participante?')) return;
 
@@ -190,7 +190,6 @@ function removerParticipante(id){
       }
     });
 }
-
 </script>
 
 </body>
