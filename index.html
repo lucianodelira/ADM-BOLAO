@@ -1,76 +1,275 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Painel Admin</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-body{background:#0d0d0d;color:#fff;font-family:Arial}
-.container{max-width:900px;margin:auto;background:#1c1c1c;padding:20px;border-radius:10px}
-input{padding:6px;border-radius:4px;border:none}
-button{padding:6px 10px;border:none;border-radius:5px;cursor:pointer}
-.remove{background:#ff3d3d;color:#fff}
-.edit{background:#2196F3;color:#fff}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Bolão Loteria Federal</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --text: #e0e0e0;
+      --accent: #00c853;
+      --danger: #ff3d3d;
+      --success: #00c853;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 30px;
+      width: 100%;
+      max-width: 1000px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    h1, h2 { text-align: center; margin-bottom: 20px; color: #fff; }
+    .login-box { max-width: 400px; margin: 0 auto; }
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input { background: #2a2a2a; color: white; }
+    button {
+      background: var(--accent);
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { opacity: 0.9; }
+    .danger-btn { background: var(--danger); color: white; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin: 25px 0;
+    }
+    .stat-card {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      border-left: 4px solid var(--accent);
+    }
+    .stat-card strong { font-size: 2.2rem; display: block; color: var(--accent); }
+    #search { margin: 20px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 14px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th { background: #222; color: #ccc; }
+    tr:hover { background: #252525; }
+    .status-ativo { color: var(--success); font-weight: bold; }
+    .btn-excluir {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .actions { text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; }
+    .hidden { display: none !important; }
+    #msg { color: #ff9800; text-align: center; margin: 10px 0; }
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      th { display: none; }
+      td { border: none; position: relative; padding-left: 50%; text-align: right; }
+      td:before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: #aaa; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-<h2>🛠 Painel Admin</h2>
-<input placeholder="Buscar" oninput="buscar(this.value)">
-<button onclick="removerTodos()" class="remove">Excluir TODOS</button>
-<ul id="lista"></ul>
+<div class="container" id="loginContainer">
+  <h1>Administração do Bolão</h1>
+  <div class="login-box">
+    <input type="password" id="senhaAdmin" placeholder="Senha administrativa">
+    <button onclick="login()">Entrar</button>
+    <div id="msgLogin"></div>
+  </div>
+</div>
+
+<div class="container hidden" id="adminContainer">
+  <h1>Painel Administrativo</h1>
+  
+  <div class="stats">
+    <div class="stat-card">
+      <strong id="totalCotas">0</strong>
+      <div>Total de Cotas</div>
+    </div>
+    <div class="stat-card">
+      <strong id="ocupadasCotas">0</strong>
+      <div>Cotas Ocupadas</div>
+    </div>
+    <div class="stat-card">
+      <strong id="disponiveisCotas">0</strong>
+      <div>Disponíveis</div>
+    </div>
+  </div>
+
+  <input type="text" id="search" placeholder="Buscar por nome ou telefone..." oninput="filtrarTabela()">
+
+  <h2>Participantes Ativos</h2>
+  <table id="tabelaParticipantes">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Data</th>
+        <th>Status</th>
+        <th>Payment ID</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="corpoTabela"></tbody>
+  </table>
+
+  <div class="actions">
+    <button class="danger-btn" onclick="excluirTodosAtivos()">Excluir TODOS os Ativos</button>
+    <button onclick="baixarCSV()">Baixar CSV Completo</button>
+    <button onclick="logout()">Sair</button>
+  </div>
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbySfyYAu9ec3tjRIWtPryOihTkq3poctMgHfzKlnPJQuDceCaHF4c3i6YZOMDfZDVuN/exec';
-let dados=[];
+const API_URL = 'https://script.google.com/macros/s/AKfycbySfyYAu9ec3tjRIWtPryOihTkq3poctMgHfzKlnPJQuDceCaHF4c3i6YZOMDfZDVuN/exec'; // ← SUA URL DO APPS SCRIPT
 
-function carregar(){
-fetch(API+'?action=infoBolao').then(r=>r.json()).then(d=>{
-dados=d.participantes;
-render(dados);
-});
-}
-setInterval(carregar,10000);
-carregar();
+let todosParticipantes = [];
 
-function render(lista){
-const ul=document.getElementById('lista');
-ul.innerHTML='';
-lista.forEach(p=>{
-ul.innerHTML+=`
-<li>
-<input value="${p.nome}" onchange="editar('${p.id}','nome',this.value)">
-<input value="${p.telefone}" onchange="editar('${p.id}','telefone',this.value)">
-${p.status}
-<button class="remove" onclick="remover('${p.id}')">❌</button>
-</li>`;
-});
+function login() {
+  const senha = document.getElementById('senhaAdmin').value;
+  if (senha === '1234') { // ← ALTERE A SENHA AQUI
+    document.getElementById('loginContainer').classList.add('hidden');
+    document.getElementById('adminContainer').classList.remove('hidden');
+    carregarDados();
+  } else {
+    document.getElementById('msgLogin').innerText = 'Senha incorreta';
+  }
 }
 
-function editar(id,campo,valor){
-fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({action:'editarCampo',id,campo,valor})});
+function logout() {
+  document.getElementById('adminContainer').classList.add('hidden');
+  document.getElementById('loginContainer').classList.remove('hidden');
+  document.getElementById('senhaAdmin').value = '';
 }
 
-function remover(id){
-if(confirm('Remover?'))
-fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({action:'removerParticipante',id})})
-.then(()=>carregar());
+function carregarDados() {
+  fetch(`${API_URL}?action=infoBolao`)
+    .then(r => r.json())
+    .then(data => {
+      todosParticipantes = data.participantes.filter(p => p.status === 'ATIVO');
+      
+      document.getElementById('totalCotas').innerText = data.total;
+      document.getElementById('ocupadasCotas').innerText = data.ocupadas;
+      document.getElementById('disponiveisCotas').innerText = data.total - data.ocupadas;
+      
+      atualizarTabela(todosParticipantes);
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Erro ao carregar dados do servidor');
+    });
 }
 
-function removerTodos(){
-if(confirm('Excluir TODOS?'))
-fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({action:'removerTodos'})})
-.then(()=>carregar());
+function atualizarTabela(lista) {
+  const tbody = document.getElementById('corpoTabela');
+  tbody.innerHTML = '';
+
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum participante ativo encontrado</td></tr>';
+    return;
+  }
+
+  lista.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="Nome">${p.nome}</td>
+      <td data-label="Telefone">${p.telefone}</td>
+      <td data-label="Data">${new Date(p.data).toLocaleString('pt-BR')}</td>
+      <td data-label="Status" class="status-ativo">${p.status}</td>
+      <td data-label="Payment ID">${p.paymentId || '-'}</td>
+      <td data-label="Ações">
+        <button class="btn-excluir" onclick="excluirParticipante('${p.id}', '${p.nome}')">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-function buscar(t){
-render(dados.filter(p=>p.nome.toLowerCase().includes(t.toLowerCase())
-||p.telefone.includes(t)));
+function filtrarTabela() {
+  const termo = document.getElementById('search').value.toLowerCase().trim();
+  const filtrados = todosParticipantes.filter(p => 
+    p.nome.toLowerCase().includes(termo) || 
+    p.telefone.includes(termo)
+  );
+  atualizarTabela(filtrados);
+}
+
+function excluirParticipante(id, nome) {
+  if (!confirm(`Deseja realmente excluir o participante ${nome}?`)) return;
+
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'removerParticipante', id }),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      alert('Participante excluído com sucesso');
+      carregarDados();
+    } else {
+      alert(res.message || 'Erro ao excluir');
+    }
+  })
+  .catch(() => alert('Erro de conexão com o servidor'));
+}
+
+function excluirTodosAtivos() {
+  if (!confirm('ATENÇÃO: Isso irá EXCLUIR TODOS os participantes ATIVOS.')) return;
+  if (!confirm('Confirme novamente: Deseja mesmo excluir TODOS? Essa ação não pode ser desfeita.')) return;
+
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'removerTodos' }),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      alert('Todos os participantes ativos foram excluídos');
+      carregarDados();
+    } else {
+      alert(res.message || 'Erro ao excluir todos');
+    }
+  })
+  .catch(() => alert('Erro de conexão'));
+}
+
+function baixarCSV() {
+  window.open(`${API_URL}?action=downloadCSV`, '_blank');
 }
 </script>
 </body>
