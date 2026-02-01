@@ -2,180 +2,75 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Bolão Loteria Federal - Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body { font-family: Arial; background:#0d0d0d; color:#fff; display:flex; justify-content:center; padding:20px;}
-.container { background:#1c1c1c; padding:20px; border-radius:10px; width:100%; max-width:800px;}
-h2,h3{text-align:center;}
-input,button{width:100%; padding:12px; margin-top:10px; border-radius:5px; border:none;}
-button{background:#00c853; color:#000; font-weight:bold; cursor:pointer;}
-ul{list-style:none; padding:0;}
-ul li{background:#1e1e1e; padding:8px; border-radius:6px; margin-bottom:6px; font-size:14px; display:flex; justify-content:space-between; align-items:center;}
-.hidden{display:none;}
-.stats{display:flex; justify-content:space-between; margin-top:15px;}
-.stats div{background:#2a2a2a; padding:10px; border-radius:6px; flex:1; text-align:center; margin:0 5px;}
-.btn-remove{background:#ff3d3d; color:#fff; border:none; border-radius:5px; padding:5px 8px; cursor:pointer;}
-#busca{margin-top:10px; padding:8px; border-radius:5px; border:none;}
-#downloadCSV{background:#2196F3; color:#fff; margin-top:10px;}
+body{background:#0d0d0d;color:#fff;font-family:Arial}
+.container{max-width:900px;margin:auto;background:#1c1c1c;padding:20px;border-radius:10px}
+input{padding:6px;border-radius:4px;border:none}
+button{padding:6px 10px;border:none;border-radius:5px;cursor:pointer}
+.remove{background:#ff3d3d;color:#fff}
+.edit{background:#2196F3;color:#fff}
 </style>
 </head>
 <body>
 
-<div class="container" id="loginAdmin">
-  <h2>Administração do Bolão</h2>
-  <input id="adminSenha" type="password" placeholder="Senha do admin">
-  <button onclick="loginAdmin()">Entrar</button>
-  <div id="loginMsg"></div>
-</div>
-
-<div class="container hidden" id="adminContainer">
-  <h2>🛠️ Painel Admin</h2>
-
-  <div class="stats">
-    <div><strong id="totalCotas">0</strong><br>Total</div>
-    <div><strong id="ocupadasCotas">0</strong><br>Ocupadas</div>
-    <div><strong id="livresCotas">0</strong><br>Disponíveis</div>
-  </div>
-
-  <input type="text" id="busca" placeholder="Buscar participante por nome ou telefone" oninput="filtrarParticipantes()">
-
-  <h3>👥 Participantes</h3>
-  <ul id="participantesAtivos"></ul>
-
-  <h3>📋 Palpites do Bolão</h3>
-  <ul id="listaPalpites"></ul>
-
-  <button id="downloadCSV" onclick="baixarCSV()">📥 Baixar CSV</button>
-  <button style="margin-top:10px;" onclick="logoutAdmin()">Sair</button>
+<div class="container">
+<h2>🛠 Painel Admin</h2>
+<input placeholder="Buscar" oninput="buscar(this.value)">
+<button onclick="removerTodos()" class="remove">Excluir TODOS</button>
+<ul id="lista"></ul>
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbySfyYAu9ec3tjRIWtPryOihTkq3poctMgHfzKlnPJQuDceCaHF4c3i6YZOMDfZDVuN/exec'; // Substitua pela sua URL do Apps Script
-let participantesData = [];
+const API = 'https://script.google.com/macros/s/AKfycbySfyYAu9ec3tjRIWtPryOihTkq3poctMgHfzKlnPJQuDceCaHF4c3i6YZOMDfZDVuN/exec';
+let dados=[];
 
-function loginAdmin(){
-  const senha = document.getElementById('adminSenha').value;
-  if(senha==='1234'){
-    document.getElementById('loginAdmin').classList.add('hidden');
-    document.getElementById('adminContainer').classList.remove('hidden');
-    carregarPainel();
-  } else {
-    document.getElementById('loginMsg').innerText='Senha incorreta';
-  }
+function carregar(){
+fetch(API+'?action=infoBolao').then(r=>r.json()).then(d=>{
+dados=d.participantes;
+render(dados);
+});
+}
+setInterval(carregar,10000);
+carregar();
+
+function render(lista){
+const ul=document.getElementById('lista');
+ul.innerHTML='';
+lista.forEach(p=>{
+ul.innerHTML+=`
+<li>
+<input value="${p.nome}" onchange="editar('${p.id}','nome',this.value)">
+<input value="${p.telefone}" onchange="editar('${p.id}','telefone',this.value)">
+${p.status}
+<button class="remove" onclick="remover('${p.id}')">❌</button>
+</li>`;
+});
 }
 
-function logoutAdmin(){
-  document.getElementById('adminContainer').classList.add('hidden');
-  document.getElementById('loginAdmin').classList.remove('hidden');
+function editar(id,campo,valor){
+fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({action:'editarCampo',id,campo,valor})});
 }
 
-function carregarPainel(){
-  fetch(`${API_URL}?action=infoBolao`)
-    .then(r=>r.json())
-    .then(d=>{
-      participantesData = d.participantes;
-
-      document.getElementById('totalCotas').innerText=d.total;
-      document.getElementById('ocupadasCotas').innerText=d.ocupadas;
-      document.getElementById('livresCotas').innerText=d.total-d.ocupadas;
-
-      exibirParticipantes(participantesData);
-    }).catch(err=>{
-      console.error(err);
-      alert('Erro ao carregar participantes');
-    });
-
-  fetch(`${API_URL}?action=getPalpites`)
-    .then(r=>r.json())
-    .then(d=>{
-      const ul=document.getElementById('listaPalpites');
-      ul.innerHTML='';
-      if(!d.palpites || d.palpites.length===0){
-        ul.innerHTML='<li>Nenhum palpite cadastrado</li>';
-      } else {
-        d.palpites.forEach(p=>{
-          const li=document.createElement('li');
-          li.textContent=`${p.nome}: ${p.numeros}`;
-          ul.appendChild(li);
-        });
-      }
-    }).catch(err=>{
-      console.error(err);
-      alert('Erro ao carregar palpites');
-    });
-}
-
-function exibirParticipantes(list){
-  const ul = document.getElementById('participantesAtivos');
-  ul.innerHTML='';
-  if(!list || list.length===0){
-    ul.innerHTML='<li>Nenhum participante</li>';
-    return;
-  }
-  list.forEach(p=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<span>${p.nome} | ${p.telefone} | ${new Date(p.data).toLocaleString()} | ${p.status} | ${p.paymentId}</span>
-    <button class="btn-remove" onclick='removerParticipante("${p.id}")'>❌</button>`;
-    ul.appendChild(li);
-  });
-  const liAll=document.createElement('li');
-  liAll.innerHTML=`<button class="btn-remove" onclick="removerTodos()">Excluir TODOS</button>`;
-  ul.appendChild(liAll);
-}
-
-function filtrarParticipantes(){
-  const termo = document.getElementById('busca').value.toLowerCase();
-  const filtrado = participantesData.filter(p=>p.nome.toLowerCase().includes(termo) || p.telefone.includes(termo));
-  exibirParticipantes(filtrado);
-}
-
-function removerParticipante(id){
-  if(!confirm(`Remover participante?`)) return;
-  fetch(API_URL,{
-    method:'POST',
-    body: JSON.stringify({ action:'removerParticipante', id }),
-    headers:{ 'Content-Type':'application/json' }
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.success){
-      alert(res.message);
-      carregarPainel();
-    } else {
-      alert(res.message || 'Erro ao remover participante');
-    }
-  })
-  .catch(err=>{
-    console.error(err);
-    alert('Erro de conexão');
-  });
+function remover(id){
+if(confirm('Remover?'))
+fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({action:'removerParticipante',id})})
+.then(()=>carregar());
 }
 
 function removerTodos(){
-  if(!confirm('Deseja realmente remover TODOS os participantes?')) return;
-  fetch(API_URL,{
-    method:'POST',
-    body: JSON.stringify({ action:'removerTodos' }),
-    headers:{ 'Content-Type':'application/json' }
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.success){
-      alert(res.message);
-      carregarPainel();
-    } else {
-      alert(res.message || 'Erro ao remover todos');
-    }
-  })
-  .catch(err=>{
-    console.error(err);
-    alert('Erro de conexão');
-  });
+if(confirm('Excluir TODOS?'))
+fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({action:'removerTodos'})})
+.then(()=>carregar());
 }
 
-function baixarCSV(){
-  window.open(`${API_URL}?action=downloadCSV`, '_blank');
+function buscar(t){
+render(dados.filter(p=>p.nome.toLowerCase().includes(t.toLowerCase())
+||p.telefone.includes(t)));
 }
 </script>
 </body>
