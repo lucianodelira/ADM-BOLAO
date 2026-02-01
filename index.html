@@ -228,45 +228,51 @@ function filtrarTabela() {
 }
 
 function excluirParticipante(id, nome) {
-  if (!confirm(`Deseja realmente excluir o participante ${nome}?`)) return;
+  if (!confirm(`Deseja excluir ${nome}?`)) return;
+
+  const form = new URLSearchParams();
+  form.append('action', 'removerParticipante');
+  form.append('id', id);
 
   fetch(API_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'removerParticipante', id }),
-    headers: { 'Content-Type': 'application/json' }
+    body: form
   })
   .then(r => r.json())
   .then(res => {
     if (res.success) {
-      alert('Participante excluído com sucesso');
+      alert('Participante excluído');
       carregarDados();
     } else {
-      alert(res.message || 'Erro ao excluir');
+      alert(res.message);
     }
   })
   .catch(() => alert('Erro de conexão com o servidor'));
 }
 
+
 function excluirTodosAtivos() {
-  if (!confirm('ATENÇÃO: Isso irá EXCLUIR TODOS os participantes ATIVOS.')) return;
-  if (!confirm('Confirme novamente: Deseja mesmo excluir TODOS? Essa ação não pode ser desfeita.')) return;
+  if (!confirm('Excluir TODOS os participantes?')) return;
+
+  const form = new URLSearchParams();
+  form.append('action', 'removerTodos');
 
   fetch(API_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'removerTodos' }),
-    headers: { 'Content-Type': 'application/json' }
+    body: form
   })
   .then(r => r.json())
   .then(res => {
     if (res.success) {
-      alert('Todos os participantes ativos foram excluídos');
+      alert('Todos excluídos');
       carregarDados();
     } else {
-      alert(res.message || 'Erro ao excluir todos');
+      alert(res.message);
     }
   })
   .catch(() => alert('Erro de conexão'));
 }
+
 
 function baixarCSV() {
   window.open(`${API_URL}?action=downloadCSV`, '_blank');
