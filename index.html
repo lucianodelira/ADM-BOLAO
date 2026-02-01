@@ -5,21 +5,8 @@
 <title>Bolão Loteria Federal - Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0d0d0d;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-}
-.container {
-  background: #1c1c1c;
-  padding: 20px;
-  border-radius: 10px;
-  width: 100%;
-  max-width: 500px;
-}
+body { font-family: Arial; background:#0d0d0d; color:#fff; display:flex; justify-content:center; padding:20px;}
+.container { background:#1c1c1c; padding:20px; border-radius:10px; width:100%; max-width:600px;}
 h2,h3{text-align:center;}
 input,button{width:100%; padding:12px; margin-top:10px; border-radius:5px; border:none;}
 button{background:#00c853; color:#000; font-weight:bold; cursor:pointer;}
@@ -59,9 +46,8 @@ ul li{background:#1e1e1e; padding:8px; border-radius:6px; margin-bottom:6px; fon
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbySfyYAu9ec3tjRIWtPryOihTkq3poctMgHfzKlnPJQuDceCaHF4c3i6YZOMDfZDVuN/exec'; // URL do seu Web App
+const API_URL = 'COLE_AQUI_SUA_URL_DO_WEBAPP'; // Substitua pela sua URL do Apps Script
 
-// LOGIN
 function loginAdmin(){
   const senha = document.getElementById('adminSenha').value;
   if(senha==='1234'){
@@ -78,9 +64,7 @@ function logoutAdmin(){
   document.getElementById('loginAdmin').classList.remove('hidden');
 }
 
-// CARREGAR PAINEL
 function carregarPainel(){
-  // Participantes
   fetch(`${API_URL}?action=infoBolao`)
     .then(r=>r.json())
     .then(d=>{
@@ -96,13 +80,12 @@ function carregarPainel(){
       } else {
         d.participantes.forEach(p=>{
           const li=document.createElement('li');
-          li.innerHTML=`<span>${p.nome} - ${p.telefone}</span>
+          li.innerHTML=`<span>${p.nome} | ${p.telefone} | ${new Date(p.data).toLocaleString()} | ${p.status}</span>
           <button class="btn-remove" onclick='removerParticipante("${p.id}")'>❌</button>`;
           ul.appendChild(li);
         });
-        // Botão Excluir ALL
         const liAll=document.createElement('li');
-        liAll.innerHTML=`<button class="btn-remove" onclick="removerTodos()">Excluir ALL</button>`;
+        liAll.innerHTML=`<button class="btn-remove" onclick="removerTodos()">Excluir TODOS</button>`;
         ul.appendChild(liAll);
       }
     }).catch(err=>{
@@ -110,7 +93,6 @@ function carregarPainel(){
       alert('Erro ao carregar participantes');
     });
 
-  // Palpites
   fetch(`${API_URL}?action=getPalpites`)
     .then(r=>r.json())
     .then(d=>{
@@ -131,10 +113,8 @@ function carregarPainel(){
     });
 }
 
-// REMOVER PARTICIPANTE INDIVIDUAL
 function removerParticipante(id){
   if(!confirm(`Remover participante?`)) return;
-
   fetch(API_URL,{
     method:'POST',
     body: JSON.stringify({ action:'removerParticipante', id }),
@@ -155,10 +135,8 @@ function removerParticipante(id){
   });
 }
 
-// REMOVER TODOS PARTICIPANTES
 function removerTodos(){
   if(!confirm('Deseja realmente remover TODOS os participantes?')) return;
-
   fetch(API_URL,{
     method:'POST',
     body: JSON.stringify({ action:'removerTodos' }),
