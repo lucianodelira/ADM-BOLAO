@@ -113,21 +113,39 @@
 <div class="container hidden" id="adminContainer">
   <h1>Painel Administrativo</h1>
  
-  <div class="stats">
-    <div class="stat-card">
-      <strong id="totalCotas">0</strong>
-      <div>Total de Cotas</div>
-    </div>
-    <div class="stat-card">
-      <strong id="ocupadasCotas">0</strong>
-      <div>Cotas Ocupadas</div>
-    </div>
-    <div class="stat-card">
-      <strong id="disponiveisCotas">0</strong>
-      <div>Disponíveis</div>
-    </div>
-  </div>
+ <div class="stats">
 
+<div class="stat-card">
+<strong id="totalCotas">0</strong>
+<div>Total de Cotas</div>
+</div>
+
+<div class="stat-card">
+<strong id="ocupadasCotas">0</strong>
+<div>Cotas Ocupadas</div>
+</div>
+
+<div class="stat-card">
+<strong id="disponiveisCotas">0</strong>
+<div>Disponíveis</div>
+</div>
+
+<div class="stat-card">
+<strong id="valorArrecadado">0</strong>
+<div>Arrecadado</div>
+</div>
+
+<div class="stat-card">
+<strong id="valorDepositar">0</strong>
+<div>Depositar</div>
+</div>
+
+<div class="stat-card">
+<strong id="valorPremio">0</strong>
+<div>Possível Prêmio</div>
+</div>
+
+</div>
   <input type="text" id="search" placeholder="Buscar por nome ou telefone..." oninput="filtrarTabela()">
 
   <h2>Participantes Ativos</h2>
@@ -205,6 +223,8 @@ function carregarDados() {
       document.getElementById('disponiveisCotas').innerText = data.total - data.ocupadas;
      
       atualizarTabela(todosParticipantes);
+calcularFinanceiro();
+
     })
     .catch(err => {
       console.error(err);
@@ -258,6 +278,13 @@ function excluirParticipante(id, nome) {
     if (res.success) {
       alert('Participante excluído');
       carregarDados();
+
+calcularFinanceiro();
+
+
+
+
+
     } else {
       alert(res.message);
     }
@@ -344,6 +371,73 @@ function gerarNovasMilhares() {
       alert('Erro de conexão com o servidor.');
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function calcularFinanceiro(){
+
+  fetch(`${API_URL}?action=getFinanceiro`)
+  .then(r=>r.json())
+  .then(data=>{
+
+    if(!data.success) return;
+
+    document.getElementById('valorArrecadado').innerText =
+    "R$ " + Number(data.arrecadado).toFixed(2);
+
+    document.getElementById('valorDepositar').innerText =
+    "R$ " + Number(data.depositar).toFixed(2);
+
+    document.getElementById('valorPremio').innerText =
+    "R$ " + Number(data.premio).toFixed(2);
+
+  });
+
+}
+
+
+
+setInterval(()=>{
+  calcularFinanceiro();
+},5000);
+
+
+
 </script>
 </body>
 </html>
