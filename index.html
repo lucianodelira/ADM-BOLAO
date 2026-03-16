@@ -89,7 +89,7 @@
       cursor: pointer;
       font-size: 13px;
     }
-    .actions { text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; }
+    .actions { text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
     .hidden { display: none !important; }
     #msg { color: #ff9800; text-align: center; margin: 10px 0; }
     @media (max-width: 700px) {
@@ -101,7 +101,6 @@
   </style>
 </head>
 <body>
-
 <div class="container" id="loginContainer">
   <h1>Administração do Bolão</h1>
   <div class="login-box">
@@ -113,7 +112,7 @@
 
 <div class="container hidden" id="adminContainer">
   <h1>Painel Administrativo</h1>
-  
+ 
   <div class="stats">
     <div class="stat-card">
       <strong id="totalCotas">0</strong>
@@ -146,16 +145,36 @@
     <tbody id="corpoTabela"></tbody>
   </table>
 
+  <!-- Nova seção de palpites / milhares -->
+  <div id="palpitesContainer" class="hidden" style="margin-top: 40px; padding: 20px; background: #222; border-radius: 10px; border: 1px solid #333;">
+    <h2>Milhares Geradas (Jogo do Bicho)</h2>
+    <div style="margin: 20px 0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      <button onclick="gerarNovasMilhares()" style="background: #ff9800; color: black; padding: 14px 24px; font-size: 16px;">
+        Gerar / Atualizar 20 milhares
+      </button>
+      <button onclick="carregarMilhares()" style="background: #2196f3; color: white; padding: 14px 24px; font-size: 16px;">
+        Visualizar números atuais
+      </button>
+      <button onclick="fecharPalpites()" class="danger-btn" style="padding: 14px 24px; font-size: 16px;">
+        Fechar
+      </button>
+    </div>
+    
+    <div id="listaMilhares" style="font-family: monospace; font-size: 18px; background: #111; padding: 20px; border-radius: 8px; min-height: 200px; white-space: pre-wrap; line-height: 1.6;">
+      Clique em "Visualizar números atuais" ou "Gerar / Atualizar" para ver as milhares...
+    </div>
+  </div>
+
   <div class="actions">
     <button class="danger-btn" onclick="excluirTodosAtivos()">Excluir TODOS os Ativos</button>
     <button onclick="baixarCSV()">Baixar CSV Completo</button>
+    <button onclick="abrirPalpites()" style="background: #9c27b0; color: white;">Gerenciar Milhares</button>
     <button onclick="logout()">Sair</button>
   </div>
 </div>
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbyxBuX4FK7vERQWAe-XKgRemrNugjblqeBjrINQfgHwvRWGKsNYOZKFYspsv5v7NJA/exec'; // ← SUA URL DO APPS SCRIPT
-
 let todosParticipantes = [];
 
 function login() {
@@ -180,11 +199,11 @@ function carregarDados() {
     .then(r => r.json())
     .then(data => {
       todosParticipantes = data.participantes.filter(p => p.status === 'ATIVO');
-      
+     
       document.getElementById('totalCotas').innerText = data.total;
       document.getElementById('ocupadasCotas').innerText = data.ocupadas;
       document.getElementById('disponiveisCotas').innerText = data.total - data.ocupadas;
-      
+     
       atualizarTabela(todosParticipantes);
     })
     .catch(err => {
@@ -196,12 +215,10 @@ function carregarDados() {
 function atualizarTabela(lista) {
   const tbody = document.getElementById('corpoTabela');
   tbody.innerHTML = '';
-
   if (lista.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum participante ativo encontrado</td></tr>';
     return;
   }
-
   lista.forEach(p => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -220,8 +237,8 @@ function atualizarTabela(lista) {
 
 function filtrarTabela() {
   const termo = document.getElementById('search').value.toLowerCase().trim();
-  const filtrados = todosParticipantes.filter(p => 
-    p.nome.toLowerCase().includes(termo) || 
+  const filtrados = todosParticipantes.filter(p =>
+    p.nome.toLowerCase().includes(termo) ||
     p.telefone.includes(termo)
   );
   atualizarTabela(filtrados);
@@ -229,11 +246,9 @@ function filtrarTabela() {
 
 function excluirParticipante(id, nome) {
   if (!confirm(`Deseja excluir ${nome}?`)) return;
-
   const form = new URLSearchParams();
   form.append('action', 'removerParticipante');
   form.append('id', id);
-
   fetch(API_URL, {
     method: 'POST',
     body: form
@@ -250,13 +265,10 @@ function excluirParticipante(id, nome) {
   .catch(() => alert('Erro de conexão com o servidor'));
 }
 
-
 function excluirTodosAtivos() {
   if (!confirm('Excluir TODOS os participantes?')) return;
-
   const form = new URLSearchParams();
   form.append('action', 'removerTodos');
-
   fetch(API_URL, {
     method: 'POST',
     body: form
@@ -273,9 +285,64 @@ function excluirTodosAtivos() {
   .catch(() => alert('Erro de conexão'));
 }
 
-
 function baixarCSV() {
   window.open(`${API_URL}?action=downloadCSV`, '_blank');
+}
+
+// ────────────────────────────────────────────────
+//  FUNÇÕES NOVAS - PALPITES / MILHARES
+// ────────────────────────────────────────────────
+
+function abrirPalpites() {
+  document.getElementById('palpitesContainer').classList.remove('hidden');
+  carregarMilhares();  // carrega automaticamente ao abrir
+}
+
+function fecharPalpites() {
+  document.getElementById('palpitesContainer').classList.add('hidden');
+}
+
+function carregarMilhares() {
+  const div = document.getElementById('listaMilhares');
+  div.innerHTML = 'Carregando...';
+
+  fetch(`${API_URL}?action=getMilhares`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.milhares && data.milhares.length > 0) {
+        div.innerHTML = data.milhares.join('\n');
+      } else {
+        div.innerHTML = 'Nenhuma milhar encontrada ou erro ao carregar.';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      div.innerHTML = 'Erro ao carregar as milhares.';
+    });
+}
+
+function gerarNovasMilhares() {
+  if (!confirm('Deseja gerar novas 20 milhares aleatórias?\nIsso substituirá as atuais.')) return;
+
+  const div = document.getElementById('listaMilhares');
+  div.innerHTML = 'Gerando novas milhares... aguarde...';
+
+  fetch(`${API_URL}?action=gerarMilhares`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        div.innerHTML = 'Novas milhares geradas com sucesso!\n\n' + data.milhares.join('\n');
+        alert('Milhares atualizadas na planilha.');
+      } else {
+        div.innerHTML = 'Erro: ' + (data.message || 'Falha desconhecida');
+        alert('Erro ao gerar: ' + (data.message || 'Falha desconhecida'));
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      div.innerHTML = 'Erro de conexão.';
+      alert('Erro de conexão com o servidor.');
+    });
 }
 </script>
 </body>
