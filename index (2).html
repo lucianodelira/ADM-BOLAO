@@ -4,148 +4,325 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - Bolão Loteria Federal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --bg: #0f0f0f;
-      --card: #1a1a1a;
-      --text: #e0e0e0;
-      --accent: #00c853;
-      --danger: #ff3d3d;
-      --success: #00c853;
+      --bg: #0a0a0f;
+      --card: #111118;
+      --card-hover: #1a1a22;
+      --text: #e0e0ff;
+      --text-muted: #a0a0c0;
+      --accent: #00d4a0;
+      --accent-dark: #00b088;
+      --danger: #ff4d4d;
+      --success: #00d4a0;
+      --border: #222233;
+      --shadow: 0 10px 40px rgba(0,0,0,0.5);
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: var(--bg);
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 100%);
       color: var(--text);
       min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
+      padding: 24px 16px;
+      line-height: 1.6;
     }
+
     .container {
       background: var(--card);
-      border-radius: 12px;
-      padding: 30px;
+      border-radius: 16px;
+      padding: 32px;
       width: 100%;
-      max-width: 1000px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      max-width: 1100px;
+      margin: 0 auto;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(6px);
     }
-    h1, h2 { text-align: center; margin-bottom: 20px; color: #fff; }
-    .login-box { max-width: 400px; margin: 0 auto; }
-    input, button {
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: white;
+      text-align: center;
+      margin-bottom: 32px;
+      letter-spacing: -0.6px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #f0f0ff;
+      margin: 36px 0 20px;
+      text-align: center;
+    }
+
+    /* Login */
+    .login-box {
+      max-width: 420px;
+      margin: 80px auto 60px;
+    }
+
+    input[type="password"],
+    input[type="text"] {
       width: 100%;
-      padding: 14px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      background: #181824;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      color: white;
+      font-size: 1.05rem;
+      transition: all 0.25s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(0, 212, 160, 0.15);
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
       margin: 12px 0;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    input { background: #2a2a2a; color: white; }
-    button {
-      background: var(--accent);
-      color: black;
-      font-weight: bold;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.3s;
+      transition: all 0.25s ease;
     }
-    button:hover { opacity: 0.9; }
-    .danger-btn { background: var(--danger); color: white; }
+
+    button.primary {
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      color: #0a0a14;
+    }
+
+    button.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 212, 160, 0.35);
+    }
+
+    .danger-btn {
+      background: var(--danger);
+      color: white;
+    }
+
+    .danger-btn:hover {
+      background: #ff3333;
+      transform: translateY(-1px);
+    }
+
+    /* Estatísticas */
     .stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 15px;
-      margin: 25px 0;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 18px;
+      margin: 36px 0;
     }
+
     .stat-card {
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
+      background: #16161f;
+      padding: 24px 18px;
+      border-radius: 14px;
       text-align: center;
-      border-left: 4px solid var(--accent);
+      border: 1px solid var(--border);
+      transition: all 0.25s;
     }
-    .stat-card strong { font-size: 2.2rem; display: block; color: var(--accent); }
-    #search { margin: 20px 0; }
+
+    .stat-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--accent);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+    }
+
+    .stat-card strong {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .stat-card div {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      font-weight: 500;
+    }
+
+    /* Busca e Tabela */
+    #search {
+      width: 100%;
+      max-width: 520px;
+      margin: 28px auto;
+      display: block;
+      padding: 15px 20px;
+      background: #181824;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      color: white;
+      font-size: 1.02rem;
+    }
+
     table {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 16px;
+      font-size: 0.97rem;
+      background: #14141c;
+      border-radius: 12px;
+      overflow: hidden;
     }
+
     th, td {
-      padding: 14px;
+      padding: 16px 14px;
       text-align: left;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #1e1e2e;
     }
-    th { background: #222; color: #ccc; }
-    tr:hover { background: #252525; }
-    .status-ativo { color: var(--success); font-weight: bold; }
+
+    th {
+      background: #1c1c28;
+      color: #c0c0e0;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.84rem;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover {
+      background: #1e1e2a;
+    }
+
+    .status-ativo {
+      color: var(--success);
+      font-weight: 600;
+    }
+
     .btn-excluir {
       background: var(--danger);
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
+      padding: 9px 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
       cursor: pointer;
-      font-size: 13px;
+      transition: 0.2s;
     }
-    .actions { text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-excluir:hover {
+      background: #ff3333;
+    }
+
+    /* Seção de Milhares */
+    #palpitesContainer {
+      margin: 48px 0;
+      padding: 28px;
+      background: #16161f;
+      border-radius: 14px;
+      border: 1px solid #222233;
+    }
+
+    #listaMilhares {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 1.18rem;
+      background: #0b0b12;
+      padding: 28px;
+      border-radius: 12px;
+      min-height: 260px;
+      white-space: pre-wrap;
+      line-height: 1.8;
+      color: #d0ffd0;
+      border: 1px solid #1a3326;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 48px;
+    }
+
+    .actions button {
+      min-width: 190px;
+      padding: 15px 28px;
+      font-size: 1.02rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
     .hidden { display: none !important; }
-    #msg { color: #ff9800; text-align: center; margin: 10px 0; }
-    @media (max-width: 700px) {
-      table, thead, tbody, th, td, tr { display: block; }
-      th { display: none; }
-      td { border: none; position: relative; padding-left: 50%; text-align: right; }
-      td:before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: #aaa; }
+
+    #msg, #msgLogin {
+      text-align: center;
+      margin: 16px 0;
+      color: #ffaa44;
+      font-weight: 500;
+      font-size: 1.05rem;
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 24px 18px; }
+      .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .actions { flex-direction: column; }
+      .actions button { width: 100%; }
+      h1 { font-size: 1.9rem; }
     }
   </style>
 </head>
 <body>
+
 <div class="container" id="loginContainer">
   <h1>Administração do Bolão</h1>
   <div class="login-box">
     <input type="password" id="senhaAdmin" placeholder="Senha administrativa">
-    <button onclick="login()">Entrar</button>
+    <button class="primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
     <div id="msgLogin"></div>
   </div>
 </div>
 
 <div class="container hidden" id="adminContainer">
   <h1>Painel Administrativo</h1>
- 
- <div class="stats">
 
-<div class="stat-card">
-<strong id="totalCotas">0</strong>
-<div>Total de Cotas</div>
-</div>
+  <div class="stats">
+    <div class="stat-card">
+      <strong id="totalCotas">0</strong>
+      <div>Total de Cotas</div>
+    </div>
+    <div class="stat-card">
+      <strong id="ocupadasCotas">0</strong>
+      <div>Cotas Ocupadas</div>
+    </div>
+    <div class="stat-card">
+      <strong id="disponiveisCotas">0</strong>
+      <div>Disponíveis</div>
+    </div>
+    <div class="stat-card">
+      <strong id="valorArrecadado">0</strong>
+      <div>Arrecadado</div>
+    </div>
+    <div class="stat-card">
+      <strong id="valorDepositar">0</strong>
+      <div>Depositar</div>
+    </div>
+    <div class="stat-card">
+      <strong id="valorPremio">0</strong>
+      <div>Possível Prêmio</div>
+    </div>
+  </div>
 
-<div class="stat-card">
-<strong id="ocupadasCotas">0</strong>
-<div>Cotas Ocupadas</div>
-</div>
-
-<div class="stat-card">
-<strong id="disponiveisCotas">0</strong>
-<div>Disponíveis</div>
-</div>
-
-<div class="stat-card">
-<strong id="valorArrecadado">0</strong>
-<div>Arrecadado</div>
-</div>
-
-<div class="stat-card">
-<strong id="valorDepositar">0</strong>
-<div>Depositar</div>
-</div>
-
-<div class="stat-card">
-<strong id="valorPremio">0</strong>
-<div>Possível Prêmio</div>
-</div>
-
-</div>
   <input type="text" id="search" placeholder="Buscar por nome ou telefone..." oninput="filtrarTabela()">
 
   <h2>Participantes Ativos</h2>
@@ -163,41 +340,61 @@
     <tbody id="corpoTabela"></tbody>
   </table>
 
-  <!-- Nova seção de palpites / milhares -->
-  <div id="palpitesContainer" class="hidden" style="margin-top: 40px; padding: 20px; background: #222; border-radius: 10px; border: 1px solid #333;">
+  <div id="palpitesContainer" class="hidden">
     <h2>Milhares Geradas (Jogo do Bicho)</h2>
-    <div style="margin: 20px 0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-      <button onclick="gerarNovasMilhares()" style="background: #ff9800; color: black; padding: 14px 24px; font-size: 16px;">
-        Gerar / Atualizar 20 milhares
+    <div style="margin: 28px 0; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;">
+      <button onclick="gerarNovasMilhares()" style="background: #ffaa00; color: #0f0f1a;">
+        <i class="fas fa-dice-six"></i> Gerar / Atualizar 20 milhares
       </button>
-      <button onclick="carregarMilhares()" style="background: #2196f3; color: white; padding: 14px 24px; font-size: 16px;">
-        Visualizar números atuais
+      <button onclick="carregarMilhares()" style="background: #2196f3; color: white;">
+        <i class="fas fa-eye"></i> Visualizar números atuais
       </button>
-      <button onclick="fecharPalpites()" class="danger-btn" style="padding: 14px 24px; font-size: 16px;">
-        Fechar
+      <button onclick="fecharPalpites()" class="danger-btn">
+        <i class="fas fa-times"></i> Fechar
       </button>
     </div>
-    
-    <div id="listaMilhares" style="font-family: monospace; font-size: 18px; background: #111; padding: 20px; border-radius: 8px; min-height: 200px; white-space: pre-wrap; line-height: 1.6;">
+   
+    <div id="listaMilhares">
       Clique em "Visualizar números atuais" ou "Gerar / Atualizar" para ver as milhares...
     </div>
   </div>
 
   <div class="actions">
-    <button class="danger-btn" onclick="excluirTodosAtivos()">Excluir TODOS os Ativos</button>
-    <button onclick="baixarCSV()">Baixar CSV Completo</button>
-    <button onclick="abrirPalpites()" style="background: #9c27b0; color: white;">Gerenciar Milhares</button>
-    <button onclick="logout()">Sair</button>
+    <button class="danger-btn" onclick="excluirTodosAtivos()">
+      <i class="fas fa-trash-can"></i> Excluir TODOS os Ativos
+    </button>
+    <button onclick="baixarCSV()">
+      <i class="fas fa-file-csv"></i> Baixar CSV Completo
+    </button>
+    <button onclick="abrirPalpites()" style="background: #9c27b0; color: white;">
+      <i class="fas fa-list-ol"></i> Gerenciar Milhares
+    </button>
+    <button onclick="logout()" style="background: #555566; color: white;">
+      <i class="fas fa-right-from-bracket"></i> Sair
+    </button>
   </div>
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyxBuX4FK7vERQWAe-XKgRemrNugjblqeBjrINQfgHwvRWGKsNYOZKFYspsv5v7NJA/exec'; // ← SUA URL DO APPS SCRIPT
+const API_URL = 'https://script.google.com/macros/s/AKfycbyxBuX4FK7vERQWAe-XKgRemrNugjblqeBjrINQfgHwvRWGKsNYOZKFYspsv5v7NJA/exec';
+const SENHA_CORRETA = '1234'; // ← MUDE A SENHA AQUI
+const STORAGE_KEY = 'adminLogadoBolaoLoteria';
+
 let todosParticipantes = [];
+
+// Verifica se já está logado ao carregar a página
+function checkLogin() {
+  if (localStorage.getItem(STORAGE_KEY) === 'true') {
+    document.getElementById('loginContainer').classList.add('hidden');
+    document.getElementById('adminContainer').classList.remove('hidden');
+    carregarDados();
+  }
+}
 
 function login() {
   const senha = document.getElementById('senhaAdmin').value;
-  if (senha === '1234') { // ← ALTERE A SENHA AQUI
+  if (senha === SENHA_CORRETA) {
+    localStorage.setItem(STORAGE_KEY, 'true');
     document.getElementById('loginContainer').classList.add('hidden');
     document.getElementById('adminContainer').classList.remove('hidden');
     carregarDados();
@@ -207,6 +404,7 @@ function login() {
 }
 
 function logout() {
+  localStorage.removeItem(STORAGE_KEY);
   document.getElementById('adminContainer').classList.add('hidden');
   document.getElementById('loginContainer').classList.remove('hidden');
   document.getElementById('senhaAdmin').value = '';
@@ -217,14 +415,13 @@ function carregarDados() {
     .then(r => r.json())
     .then(data => {
       todosParticipantes = data.participantes.filter(p => p.status === 'ATIVO');
-     
+    
       document.getElementById('totalCotas').innerText = data.total;
       document.getElementById('ocupadasCotas').innerText = data.ocupadas;
       document.getElementById('disponiveisCotas').innerText = data.total - data.ocupadas;
-     
+    
       atualizarTabela(todosParticipantes);
-calcularFinanceiro();
-
+      calcularFinanceiro();
     })
     .catch(err => {
       console.error(err);
@@ -278,13 +475,7 @@ function excluirParticipante(id, nome) {
     if (res.success) {
       alert('Participante excluído');
       carregarDados();
-
-calcularFinanceiro();
-
-
-
-
-
+      calcularFinanceiro();
     } else {
       alert(res.message);
     }
@@ -317,12 +508,11 @@ function baixarCSV() {
 }
 
 // ────────────────────────────────────────────────
-//  FUNÇÕES NOVAS - PALPITES / MILHARES
+// FUNÇÕES DE PALPITES / MILHARES
 // ────────────────────────────────────────────────
-
 function abrirPalpites() {
   document.getElementById('palpitesContainer').classList.remove('hidden');
-  carregarMilhares();  // carrega automaticamente ao abrir
+  carregarMilhares();
 }
 
 function fecharPalpites() {
@@ -332,7 +522,6 @@ function fecharPalpites() {
 function carregarMilhares() {
   const div = document.getElementById('listaMilhares');
   div.innerHTML = 'Carregando...';
-
   fetch(`${API_URL}?action=getMilhares`)
     .then(r => r.json())
     .then(data => {
@@ -350,10 +539,8 @@ function carregarMilhares() {
 
 function gerarNovasMilhares() {
   if (!confirm('Deseja gerar novas 20 milhares aleatórias?\nIsso substituirá as atuais.')) return;
-
   const div = document.getElementById('listaMilhares');
   div.innerHTML = 'Gerando novas milhares... aguarde...';
-
   fetch(`${API_URL}?action=gerarMilhares`, { method: 'POST' })
     .then(r => r.json())
     .then(data => {
@@ -372,72 +559,23 @@ function gerarNovasMilhares() {
     });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function calcularFinanceiro(){
-
   fetch(`${API_URL}?action=getFinanceiro`)
   .then(r=>r.json())
   .then(data=>{
-
     if(!data.success) return;
-
-    document.getElementById('valorArrecadado').innerText =
-    "R$ " + Number(data.arrecadado).toFixed(2);
-
-    document.getElementById('valorDepositar').innerText =
-    "R$ " + Number(data.depositar).toFixed(2);
-
-    document.getElementById('valorPremio').innerText =
-    "R$ " + Number(data.premio).toFixed(2);
-
+    document.getElementById('valorArrecadado').innerText = "R$ " + Number(data.arrecadado).toFixed(2);
+    document.getElementById('valorDepositar').innerText = "R$ " + Number(data.depositar).toFixed(2);
+    document.getElementById('valorPremio').innerText = "R$ " + Number(data.premio).toFixed(2);
   });
-
 }
 
-
-
-setInterval(()=>{
+setInterval(() => {
   calcularFinanceiro();
-},5000);
+}, 5000);
 
-
-
+// Executa ao carregar a página
+window.onload = checkLogin;
 </script>
 </body>
 </html>
