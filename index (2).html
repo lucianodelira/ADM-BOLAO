@@ -1,195 +1,443 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Bolão Loteria Federal - Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0d0d0d;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-}
-
-.container {
-  background: #1c1c1c;
-  padding: 20px;
-  border-radius: 10px;
-  width: 100%;
-  max-width: 500px;
-}
-
-h2, h3 { text-align: center; }
-
-input, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 5px;
-  border: none;
-}
-
-button {
-  background: #00c853;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-ul li {
-  background: #1e1e1e;
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.hidden { display: none; }
-
-.stats {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-
-.stats div {
-  background: #2a2a2a;
-  padding: 10px;
-  border-radius: 6px;
-  flex: 1;
-  text-align: center;
-  margin: 0 5px;
-}
-
-.btn-remove {
-  background: #ff3d3d;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: 5px 8px;
-  cursor: pointer;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Bolão Loteria Federal</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --text: #e0e0e0;
+      --accent: #00c853;
+      --danger: #ff3d3d;
+      --success: #00c853;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 30px;
+      width: 100%;
+      max-width: 1000px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    h1, h2 { text-align: center; margin-bottom: 20px; color: #fff; }
+    .login-box { max-width: 400px; margin: 0 auto; }
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input { background: #2a2a2a; color: white; }
+    button {
+      background: var(--accent);
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { opacity: 0.9; }
+    .danger-btn { background: var(--danger); color: white; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin: 25px 0;
+    }
+    .stat-card {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      border-left: 4px solid var(--accent);
+    }
+    .stat-card strong { font-size: 2.2rem; display: block; color: var(--accent); }
+    #search { margin: 20px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 14px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th { background: #222; color: #ccc; }
+    tr:hover { background: #252525; }
+    .status-ativo { color: var(--success); font-weight: bold; }
+    .btn-excluir {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .actions { text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+    .hidden { display: none !important; }
+    #msg { color: #ff9800; text-align: center; margin: 10px 0; }
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      th { display: none; }
+      td { border: none; position: relative; padding-left: 50%; text-align: right; }
+      td:before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: #aaa; }
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="container" id="loginAdmin">
-  <h2>Administração do Bolão</h2>
-  <input id="adminSenha" type="password" placeholder="Senha do admin">
-  <button onclick="loginAdmin()">Entrar</button>
-  <div id="loginMsg"></div>
+<div class="container" id="loginContainer">
+  <h1>Administração do Bolão</h1>
+  <div class="login-box">
+    <input type="password" id="senhaAdmin" placeholder="Senha administrativa">
+    <button onclick="login()">Entrar</button>
+    <div id="msgLogin"></div>
+  </div>
 </div>
 
 <div class="container hidden" id="adminContainer">
-  <h2>🛠️ Painel Admin</h2>
+  <h1>Painel Administrativo</h1>
+ 
+ <div class="stats">
 
-  <div class="stats">
-    <div><strong id="totalCotas">0</strong><br>Total</div>
-    <div><strong id="ocupadasCotas">0</strong><br>Ocupadas</div>
-    <div><strong id="livresCotas">0</strong><br>Disponíveis</div>
+<div class="stat-card">
+<strong id="totalCotas">0</strong>
+<div>Total de Cotas</div>
+</div>
+
+<div class="stat-card">
+<strong id="ocupadasCotas">0</strong>
+<div>Cotas Ocupadas</div>
+</div>
+
+<div class="stat-card">
+<strong id="disponiveisCotas">0</strong>
+<div>Disponíveis</div>
+</div>
+
+<div class="stat-card">
+<strong id="valorArrecadado">0</strong>
+<div>Arrecadado</div>
+</div>
+
+<div class="stat-card">
+<strong id="valorDepositar">0</strong>
+<div>Depositar</div>
+</div>
+
+<div class="stat-card">
+<strong id="valorPremio">0</strong>
+<div>Possível Prêmio</div>
+</div>
+
+</div>
+  <input type="text" id="search" placeholder="Buscar por nome ou telefone..." oninput="filtrarTabela()">
+
+  <h2>Participantes Ativos</h2>
+  <table id="tabelaParticipantes">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Data</th>
+        <th>Status</th>
+        <th>Payment ID</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="corpoTabela"></tbody>
+  </table>
+
+  <!-- Nova seção de palpites / milhares -->
+  <div id="palpitesContainer" class="hidden" style="margin-top: 40px; padding: 20px; background: #222; border-radius: 10px; border: 1px solid #333;">
+    <h2>Milhares Geradas (Jogo do Bicho)</h2>
+    <div style="margin: 20px 0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      <button onclick="gerarNovasMilhares()" style="background: #ff9800; color: black; padding: 14px 24px; font-size: 16px;">
+        Gerar / Atualizar 20 milhares
+      </button>
+      <button onclick="carregarMilhares()" style="background: #2196f3; color: white; padding: 14px 24px; font-size: 16px;">
+        Visualizar números atuais
+      </button>
+      <button onclick="fecharPalpites()" class="danger-btn" style="padding: 14px 24px; font-size: 16px;">
+        Fechar
+      </button>
+    </div>
+    
+    <div id="listaMilhares" style="font-family: monospace; font-size: 18px; background: #111; padding: 20px; border-radius: 8px; min-height: 200px; white-space: pre-wrap; line-height: 1.6;">
+      Clique em "Visualizar números atuais" ou "Gerar / Atualizar" para ver as milhares...
+    </div>
   </div>
 
-  <h3>👥 Participantes</h3>
-  <ul id="participantesAtivos"></ul>
-
-  <h3>📋 Palpites do Bolão</h3>
-  <ul id="listaPalpites"></ul>
-
-  <button style="margin-top:20px;" onclick="logoutAdmin()">Sair</button>
+  <div class="actions">
+    <button class="danger-btn" onclick="excluirTodosAtivos()">Excluir TODOS os Ativos</button>
+    <button onclick="baixarCSV()">Baixar CSV Completo</button>
+    <button onclick="abrirPalpites()" style="background: #9c27b0; color: white;">Gerenciar Milhares</button>
+    <button onclick="logout()">Sair</button>
+  </div>
 </div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyoEzMAJPNQ6fF38lvWAjDdKeLuMHIq88sIJUfRZNPL2jLgi7dQjJbznn2eh4ArInr2/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyxBuX4FK7vERQWAe-XKgRemrNugjblqeBjrINQfgHwvRWGKsNYOZKFYspsv5v7NJA/exec'; // ← SUA URL DO APPS SCRIPT
+let todosParticipantes = [];
 
-// LOGIN
-function loginAdmin() {
-  const senha = document.getElementById('adminSenha').value;
-  if (senha === '1234') {
-    document.getElementById('loginAdmin').classList.add('hidden');
+function login() {
+  const senha = document.getElementById('senhaAdmin').value;
+  if (senha === '1234') { // ← ALTERE A SENHA AQUI
+    document.getElementById('loginContainer').classList.add('hidden');
     document.getElementById('adminContainer').classList.remove('hidden');
-    carregarPainel();
+    carregarDados();
   } else {
-    document.getElementById('loginMsg').innerText = 'Senha incorreta';
+    document.getElementById('msgLogin').innerText = 'Senha incorreta';
   }
 }
 
-function logoutAdmin() {
+function logout() {
   document.getElementById('adminContainer').classList.add('hidden');
-  document.getElementById('loginAdmin').classList.remove('hidden');
+  document.getElementById('loginContainer').classList.remove('hidden');
+  document.getElementById('senhaAdmin').value = '';
 }
 
-// PAINEL
-function carregarPainel() {
-  fetch(API_URL + '?action=infoBolao')
+function carregarDados() {
+  fetch(`${API_URL}?action=infoBolao`)
     .then(r => r.json())
-    .then(d => {
-      document.getElementById('totalCotas').innerText = d.total;
-      document.getElementById('ocupadasCotas').innerText = d.ocupadas;
-      document.getElementById('livresCotas').innerText = d.total - d.ocupadas;
+    .then(data => {
+      todosParticipantes = data.participantes.filter(p => p.status === 'ATIVO');
+     
+      document.getElementById('totalCotas').innerText = data.total;
+      document.getElementById('ocupadasCotas').innerText = data.ocupadas;
+      document.getElementById('disponiveisCotas').innerText = data.total - data.ocupadas;
+     
+      atualizarTabela(todosParticipantes);
+calcularFinanceiro();
 
-      const ul = document.getElementById('participantesAtivos');
-      ul.innerHTML = '';
-
-      if (d.participantes.length === 0) {
-        ul.innerHTML = '<li>Nenhum participante</li>';
-      } else {
-        d.participantes.forEach(p => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <span>${p.nome} - ${p.telefone}</span>
-            <button class="btn-remove" onclick="removerParticipante('${p.nome}','${p.telefone}')">❌</button>
-          `;
-          ul.appendChild(li);
-        });
-      }
-    });
-
-  fetch(API_URL + '?action=palpites')
-    .then(r => r.json())
-    .then(d => {
-      const ul = document.getElementById('listaPalpites');
-      ul.innerHTML = '';
-
-      if (d.palpites.length === 0) {
-        ul.innerHTML = '<li>Nenhum palpite cadastrado</li>';
-      } else {
-        d.palpites.forEach(p => {
-          const li = document.createElement('li');
-          li.textContent = p;
-          ul.appendChild(li);
-        });
-      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Erro ao carregar dados do servidor');
     });
 }
 
-// REMOVER
-function removerParticipante(nome, telefone) {
-  if (!confirm(`Remover ${nome}?`)) return;
+function atualizarTabela(lista) {
+  const tbody = document.getElementById('corpoTabela');
+  tbody.innerHTML = '';
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum participante ativo encontrado</td></tr>';
+    return;
+  }
+  lista.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="Nome">${p.nome}</td>
+      <td data-label="Telefone">${p.telefone}</td>
+      <td data-label="Data">${new Date(p.data).toLocaleString('pt-BR')}</td>
+      <td data-label="Status" class="status-ativo">${p.status}</td>
+      <td data-label="Payment ID">${p.paymentId || '-'}</td>
+      <td data-label="Ações">
+        <button class="btn-excluir" onclick="excluirParticipante('${p.id}', '${p.nome}')">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-  fetch(`${API_URL}?action=removerParticipante&nome=${encodeURIComponent(nome)}&telefone=${encodeURIComponent(telefone)}`)
+function filtrarTabela() {
+  const termo = document.getElementById('search').value.toLowerCase().trim();
+  const filtrados = todosParticipantes.filter(p =>
+    p.nome.toLowerCase().includes(termo) ||
+    p.telefone.includes(termo)
+  );
+  atualizarTabela(filtrados);
+}
+
+function excluirParticipante(id, nome) {
+  if (!confirm(`Deseja excluir ${nome}?`)) return;
+  const form = new URLSearchParams();
+  form.append('action', 'removerParticipante');
+  form.append('id', id);
+  fetch(API_URL, {
+    method: 'POST',
+    body: form
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      alert('Participante excluído');
+      carregarDados();
+
+calcularFinanceiro();
+
+
+
+
+
+    } else {
+      alert(res.message);
+    }
+  })
+  .catch(() => alert('Erro de conexão com o servidor'));
+}
+
+function excluirTodosAtivos() {
+  if (!confirm('Excluir TODOS os participantes?')) return;
+  const form = new URLSearchParams();
+  form.append('action', 'removerTodos');
+  fetch(API_URL, {
+    method: 'POST',
+    body: form
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      alert('Todos excluídos');
+      carregarDados();
+    } else {
+      alert(res.message);
+    }
+  })
+  .catch(() => alert('Erro de conexão'));
+}
+
+function baixarCSV() {
+  window.open(`${API_URL}?action=downloadCSV`, '_blank');
+}
+
+// ────────────────────────────────────────────────
+//  FUNÇÕES NOVAS - PALPITES / MILHARES
+// ────────────────────────────────────────────────
+
+function abrirPalpites() {
+  document.getElementById('palpitesContainer').classList.remove('hidden');
+  carregarMilhares();  // carrega automaticamente ao abrir
+}
+
+function fecharPalpites() {
+  document.getElementById('palpitesContainer').classList.add('hidden');
+}
+
+function carregarMilhares() {
+  const div = document.getElementById('listaMilhares');
+  div.innerHTML = 'Carregando...';
+
+  fetch(`${API_URL}?action=getMilhares`)
     .then(r => r.json())
-    .then(res => {
-      if (res.success) {
-        carregarPainel();
+    .then(data => {
+      if (data.success && data.milhares && data.milhares.length > 0) {
+        div.innerHTML = data.milhares.join('\n');
       } else {
-        alert('Erro ao remover');
+        div.innerHTML = 'Nenhuma milhar encontrada ou erro ao carregar.';
       }
+    })
+    .catch(err => {
+      console.error(err);
+      div.innerHTML = 'Erro ao carregar as milhares.';
     });
 }
+
+function gerarNovasMilhares() {
+  if (!confirm('Deseja gerar novas 20 milhares aleatórias?\nIsso substituirá as atuais.')) return;
+
+  const div = document.getElementById('listaMilhares');
+  div.innerHTML = 'Gerando novas milhares... aguarde...';
+
+  fetch(`${API_URL}?action=gerarMilhares`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        div.innerHTML = 'Novas milhares geradas com sucesso!\n\n' + data.milhares.join('\n');
+        alert('Milhares atualizadas na planilha.');
+      } else {
+        div.innerHTML = 'Erro: ' + (data.message || 'Falha desconhecida');
+        alert('Erro ao gerar: ' + (data.message || 'Falha desconhecida'));
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      div.innerHTML = 'Erro de conexão.';
+      alert('Erro de conexão com o servidor.');
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function calcularFinanceiro(){
+
+  fetch(`${API_URL}?action=getFinanceiro`)
+  .then(r=>r.json())
+  .then(data=>{
+
+    if(!data.success) return;
+
+    document.getElementById('valorArrecadado').innerText =
+    "R$ " + Number(data.arrecadado).toFixed(2);
+
+    document.getElementById('valorDepositar').innerText =
+    "R$ " + Number(data.depositar).toFixed(2);
+
+    document.getElementById('valorPremio').innerText =
+    "R$ " + Number(data.premio).toFixed(2);
+
+  });
+
+}
+
+
+
+setInterval(()=>{
+  calcularFinanceiro();
+},5000);
+
+
+
 </script>
-
 </body>
 </html>
